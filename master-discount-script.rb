@@ -13,7 +13,13 @@ DISCOUNT_ENTIRE_SITE_MESSAGE = 'Summer discount event!'
 # Use one or more words, or to deactivate set DISCOUNT_CATEGORY_TAGS = []
 DISCOUNT_CATEGORY_TAGS = ['Sale', 'New']
 DISCOUNT_CATEGORY_PERCENT = 20
-DISCOUNT_CATEGORY_MESSAGE = "20% off new coffee!"
+DISCOUNT_CATEGORY_MESSAGE = "20% off select coffees!"
+
+DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = ['Cup']
+GREATER_OR_LOWER_THAN = :lower_than
+CATEGORY_PRICE = Money.new(cents: 20_00)
+DISCOUNT_CATEGORY_WITH_PRICE_PERCENT = 50
+DISCOUNT_CATEGORY_WITH_PRICE_MESSAGE = "50% off cups under $20!"
 
 #################################################################################
 # CUSTOM DISCOUNTS
@@ -47,8 +53,11 @@ end
 # The `CategorySelector` selects items by 1 or more tags.
 #
 # Example
-# -------
+# -------s
 #   * Items where the variant has "sale" or "new" tags.
+#   * CategorySelector.new(['sale', 'new'])
+#   * CategorySelector.new(['featured'])
+#
 #
 class CategorySelector
 
@@ -60,6 +69,33 @@ class CategorySelector
   def match?(line_item)
     # take each tag on the line item, and if any of them are included in the category tags return true.
     line_item.variant.product.tags.any?{ |tag| @category_tags.include?(tag) }
+  end
+end
+
+# PriceSelector
+# =============
+#
+# The `PriceSelector` selects items by price.
+#
+# Example
+# -------
+#   * Items with a price lower than $5
+#   PriceSelector.new(:greater_than, Money.new(cents: 5_00))
+#
+class PriceSelector
+
+  def initialize(condition, price)
+    @price = price
+    @condition = condition
+  end
+
+  def match?(line_item)
+    case @condition
+    when :greater_than
+      line_item.variant.price > @price
+    when :lower_than
+      line_item.variant.price < @price
+    end
   end
 end
 
@@ -85,16 +121,6 @@ class EntireSiteCampaign
   # modify cart.line_items directly, so no need to return. 
   def run(cart)
 
-    # example code.
-    # applicable_items = cart.line_items.select do |line_item|
-    #   @selector.match?(line_item)
-    # end
-    # discounted_items = @partitioner.partition(cart, applicable_items)
-
-    # discounted_items.each do |line_item|
-    #   @discount.apply(line_item)
-    # end
-
     return if @discount == 0;
 
     cart.line_items.each do |line_item|
@@ -106,14 +132,16 @@ end
 
 class CategoryCampaign
 
-  def initialize(category_selector, discount)
-    @category_selector = category_selector
+  def initialize(category_selectors, discount)
+    @category_selectors = category_selectors
     @discount = discount
   end
 
   def run(cart)
     items_in_discount_category = cart.line_items.select do |line_item|
-      @category_selector.match?(line_item)
+      @category_selectors.all? do |selector|
+        selector.match?(line_item)
+      end
     end
 
     items_in_discount_category.each do |line_item|
@@ -128,12 +156,24 @@ end
 #################################################################################
 
 CAMPAIGNS = [
+  # Entire site X% off.
   EntireSiteCampaign.new(
     PercentageDiscount.new(DISCOUNT_ENTIRE_SITE_PERCENT, DISCOUNT_ENTIRE_SITE_MESSAGE)
   ),
+  # Entire Category X% off. Category defined by 1 or more tags. 20% off items tagged 'sale' or 'new'.
   CategoryCampaign.new(
-    CategorySelector.new(DISCOUNT_CATEGORY_TAGS),
+    [
+      CategorySelector.new(DISCOUNT_CATEGORY_TAGS)
+    ],
     PercentageDiscount.new(DISCOUNT_CATEGORY_PERCENT, DISCOUNT_CATEGORY_MESSAGE)
+  ),
+  # Entire Category X% off with price condition. Cups under $20 are 50% off.
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS),
+      PriceSelector.new(GREATER_OR_LOWER_THAN, CATEGORY_PRICE)
+    ],
+    PercentageDiscount.new(DISCOUNT_CATEGORY_WITH_PRICE_PERCENT, DISCOUNT_CATEGORY_WITH_PRICE_MESSAGE)
   ),
 ]
 
