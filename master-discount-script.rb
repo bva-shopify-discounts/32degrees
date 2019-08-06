@@ -33,6 +33,19 @@ FLAT_AMOUNT = Money.new(cents: 3_99)
 # FLAT_AMOUNT = nil
 FLAT_AMOUNT_CATEGORY_MESSAGE = 'Flash sale!'
 
+# BOGO
+# Ex: Buy two products tagged with 'BOGO' and the third is 50% off.
+BOGO_CATEGORY_TAGS = ['BOGO']
+BOGO_MESSAGE = 'Buy 2 get 50% off!'
+PAID_ITEM_COUNT = 2
+DISCOUNTED_ITEM_COUNT = 1
+BOGO_DISCOUNT_PERCENT = 50
+# To disable:
+  # set BOGO_CATEGORY_TAGS = []
+# To get Buy X get X free:
+  # set BOGO_DISCOUNT_PERCENT = 100
+  # because free = 100% discount
+
 #################################################################################
 # DISCOUNTS
 #################################################################################
@@ -143,6 +156,71 @@ end
 # PARTITIONERS
 #################################################################################
 
+class BOGOPartitioner
+
+  def initialize(paid_item_count, discounted_item_count)
+    @paid_item_count = paid_item_count
+    @discounted_item_count = discounted_item_count
+  end
+
+  # Returns the integer amount of items that must be discounted next
+  # given the amount of items seen
+  #
+  def discounted_items_to_find(total_items_seen, discounted_items_seen)
+    Integer(total_items_seen / (@paid_item_count + @discounted_item_count) * @discounted_item_count) - discounted_items_seen
+  end
+
+  # Partitions the items and returns the items that are to be discounted.
+  #
+  # Arguments
+  # ---------
+  #
+  # * cart
+  #   The cart to which split items will be added (typically Input.cart).
+  #
+  # * line_items
+  #   The selected items that are applicable for the campaign.
+  #
+  def partition(cart, line_items)
+    # Sort the items by price from high to low
+    sorted_items = line_items.sort_by{|line_item| line_item.variant.price}.reverse
+    # Create an array of items to return
+    discounted_items = []
+    # Keep counters of items seen and discounted, to avoid having to recalculate on each iteration
+    total_items_seen = 0
+    discounted_items_seen = 0
+
+    # Loop over all the items and find those to be discounted
+    sorted_items.each do |line_item|
+      total_items_seen += line_item.quantity
+      # After incrementing total_items_seen, see if any items must be discounted
+      count = discounted_items_to_find(total_items_seen, discounted_items_seen)
+      # If there are none, skip to the next item
+      next if count <= 0
+
+      if count >= line_item.quantity
+        # If the full item quantity must be discounted, add it to the items to return
+        # and increment the count of discounted items
+        discounted_items.push(line_item)
+        discounted_items_seen += line_item.quantity
+      else
+        # If only part of the item must be discounted, split the item
+        discounted_item = line_item.split(take: count)
+        # Insert the newly-created item in the cart, right after the original item
+        position = cart.line_items.find_index(line_item)
+        cart.line_items.insert(position + 1, discounted_item)
+        # Add it to the list of items to return
+        discounted_items.push(discounted_item)
+        discounted_items_seen += discounted_item.quantity
+      end
+    end
+
+    # Return the items to be discounted
+    discounted_items
+  end
+end
+
+
 #################################################################################
 # CAMPAIGN CLASSES
 # Define each campaign with methods: initialize, run.
@@ -189,6 +267,28 @@ class CategoryCampaign
   end
 end
 
+class BOGOCampaign
+  def initialize(category_selectors, discount, partition)
+    @category_selectors = category_selectors
+    @discount = discount
+    @partition = partition
+  end
+
+  def run(cart)
+    items_in_discount_category = cart.line_items.select do |line_item|
+      @category_selectors.all? do |selector|
+        selector.match?(line_item)
+      end
+    end
+
+    discount_these_items = @partition.partition(cart, items_in_discount_category)
+
+    discount_these_items.each do |line_item|
+      @discount.apply(line_item)
+    end
+  end
+end
+
 #################################################################################
 # EXECUTE CAMPAIGNS
 # Initialize all campaigns and run them, passing in cart to modify.
@@ -223,6 +323,13 @@ CAMPAIGNS = [
       CategorySelector.new(FLAT_AMOUNT_CATEGORY_TAGS)
     ],
     SetFlatAmountDiscount.new(FLAT_AMOUNT, FLAT_AMOUNT_CATEGORY_MESSAGE)
+  ),
+  BOGOCampaign.new(
+    [
+      CategorySelector.new(BOGO_CATEGORY_TAGS)
+    ],
+    PercentageDiscount.new(BOGO_DISCOUNT_PERCENT, BOGO_MESSAGE),
+    BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
   )
 ]
 
