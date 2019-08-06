@@ -9,20 +9,32 @@ DISCOUNT_ENTIRE_SITE_PERCENT = 0
 DISCOUNT_ENTIRE_SITE_MESSAGE = 'Summer discount event!'
 
 # CategoryCampaign settings
+
+# Category Campaign 1: Category X Percent off
 # Take X percent off products tagged with these words.
 # Use one or more words, or to deactivate set DISCOUNT_CATEGORY_TAGS = []
 DISCOUNT_CATEGORY_TAGS = ['Sale', 'New']
 DISCOUNT_CATEGORY_PERCENT = 20
 DISCOUNT_CATEGORY_MESSAGE = "20% off select coffees!"
 
+# Category Campaign 2: Cups under $20 are 50% off.
+# Entire Category X% off with price condition. 
 DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = ['Cup']
 GREATER_OR_LOWER_THAN = :lower_than
 CATEGORY_PRICE = Money.new(cents: 20_00)
 DISCOUNT_CATEGORY_WITH_PRICE_PERCENT = 50
 DISCOUNT_CATEGORY_WITH_PRICE_MESSAGE = "50% off cups under $20!"
 
+# Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX 
+# Set tagged products to a flat amount
+FLAT_AMOUNT_CATEGORY_TAGS = ['Flash']
+FLAT_AMOUNT = Money.new(cents: 3_99)
+# To disable this discount campaign, uncomment the following line to set FLAT_AMOUNT to nil:
+# FLAT_AMOUNT = nil
+FLAT_AMOUNT_CATEGORY_MESSAGE = 'Flash sale!'
+
 #################################################################################
-# CUSTOM DISCOUNTS
+# DISCOUNTS
 #################################################################################
 
 # Apply a percentage discount to a line item.
@@ -42,9 +54,36 @@ class PercentageDiscount
 
 end
 
+# SetFlatAmountDiscount
+# ============
+#
+# The `SetFlatAmountDiscount` discounts an item to a flat amount.
+#
+# Example
+# -------
+#   * Items tagged flash sale are $3.99
+#   SetFlatAmountDiscount
+#
+class SetFlatAmountDiscount
+
+  # arguments:
+  # amount: flat amount to set line item price to as class Money.
+  # message: display with line item.
+  def initialize(amount, message)
+    @amount = amount
+    @message = message
+  end
+
+  def apply(line_item)
+    # discount inactive if amount is nil.
+    return if @amount.nil?
+    line_item.change_line_price(@amount, message: @message)
+  end
+end
+
 
 #################################################################################
-# CUSTOM SELECTORS
+# SELECTORS
 #################################################################################
 
 # CategorySelector
@@ -53,10 +92,10 @@ end
 # The `CategorySelector` selects items by 1 or more tags.
 #
 # Example
-# -------s
+# -------
 #   * Items where the variant has "sale" or "new" tags.
-#   * CategorySelector.new(['sale', 'new'])
-#   * CategorySelector.new(['featured'])
+#   CategorySelector.new(['sale', 'new'])
+#   CategorySelector.new(['featured'])
 #
 #
 class CategorySelector
@@ -101,7 +140,7 @@ end
 
 
 #################################################################################
-# CUSTOM PARTITIONERS
+# PARTITIONERS
 #################################################################################
 
 #################################################################################
@@ -160,14 +199,16 @@ CAMPAIGNS = [
   EntireSiteCampaign.new(
     PercentageDiscount.new(DISCOUNT_ENTIRE_SITE_PERCENT, DISCOUNT_ENTIRE_SITE_MESSAGE)
   ),
-  # Entire Category X% off. Category defined by 1 or more tags. 20% off items tagged 'sale' or 'new'.
+  # Category Campaign 1: 20% off items tagged 'sale' or 'new'.
+  # Entire Category X% off. Category defined by 1 or more tags. 
   CategoryCampaign.new(
     [
       CategorySelector.new(DISCOUNT_CATEGORY_TAGS)
     ],
     PercentageDiscount.new(DISCOUNT_CATEGORY_PERCENT, DISCOUNT_CATEGORY_MESSAGE)
   ),
-  # Entire Category X% off with price condition. Cups under $20 are 50% off.
+  # Category Campaign 2: Cups under $20 are 50% off.
+  # Entire Category X% off with price condition. 
   CategoryCampaign.new(
     [
       CategorySelector.new(DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS),
@@ -175,6 +216,14 @@ CAMPAIGNS = [
     ],
     PercentageDiscount.new(DISCOUNT_CATEGORY_WITH_PRICE_PERCENT, DISCOUNT_CATEGORY_WITH_PRICE_MESSAGE)
   ),
+  # Category Campaign 3: Items tagged with 'Flash' are $3.99
+  # Set tagged products to a flat amount: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX 
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(FLAT_AMOUNT_CATEGORY_TAGS)
+    ],
+    SetFlatAmountDiscount.new(FLAT_AMOUNT, FLAT_AMOUNT_CATEGORY_MESSAGE)
+  )
 ]
 
 CAMPAIGNS.each do |campaign|
