@@ -322,17 +322,13 @@ class SPENDXSAVECampaign
     return if @spend_threshold.nil? || @spend_threshold.zero?
     total_cart_price = 0
 
-    # Loop over all the items to find eligble ones and total eligible discount price
     eligible_items = Input.cart.line_items.select do |line_item|
-      total_cart_price += Integer(line_item.line_price.cents.to_s)
-      true
+      # if eligible, put the line_item in the array and add its price to total_cart_price.
+      if @discount_tags.empty? || @discount_tags.any?{ |tag| product.tags.include?(tag) }
+        total_cart_price += Integer(line_item.line_price.cents.to_s)
+      end
     end
 
-    #   product = line_item.variant.product
-    #   @discount_tags.any?{ |tag| product.tags.include?(tag) }
-    # end
-
-    message = ""
     # total_discount is the amount * the number of times over the spend_threshold the cart is.
     # if total cart price of elligible items is $140 and we say 'spend $50 get $10'
     # 140/50 rounded down gives us 2. total_discount is 2 * @discount_amount = 2 * $10 = $20 off.
