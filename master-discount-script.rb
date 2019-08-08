@@ -11,26 +11,34 @@ DISCOUNT_ENTIRE_SITE_MESSAGE = 'Summer discount event!'
 # CategoryCampaign settings
 
 # Category Campaign 1: Category X Percent off
-# Take X percent off products tagged with these words.
+# Take X percent off products tagged with any of the words in DISCOUNT_CATEGORY_TAGS.
 # Use one or more words, or to deactivate set DISCOUNT_CATEGORY_TAGS = []
-DISCOUNT_CATEGORY_TAGS = ['Sale', 'New']
+
+# Example: Take 20% off any products tagged as either 'New' or 'Sale'.
+# DISCOUNT_CATEGORY_TAGS = ['Sale', 'New']
+DISCOUNT_CATEGORY_TAGS = []
 DISCOUNT_CATEGORY_PERCENT = 20
 DISCOUNT_CATEGORY_MESSAGE = "20% off select coffees!"
 
 # Category Campaign 2: Cups under $20 are 50% off.
 # Entire Category X% off with price condition. 
-DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = ['Cup']
+# To deactivate set DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = []
+# DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = ['Cup']
+DISCOUNT_CATEGORY_WITH_PRICE_CONDITION_TAGS = []
 GREATER_OR_LOWER_THAN = :lower_than
 CATEGORY_PRICE = Money.new(cents: 20_00)
 DISCOUNT_CATEGORY_WITH_PRICE_PERCENT = 50
 DISCOUNT_CATEGORY_WITH_PRICE_MESSAGE = "50% off cups under $20!"
 
 # Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX 
-# Set tagged products to a flat amount
+# Set products tagged as 'Flash' to a flat amount. 
+# Can include multiple tags to look for - ex: ['Flash', 'Clearance']
+
+# To deactivate: 
+# remove the 'Flash' tag from the product, or set 
+# FLAT_AMOUNT_CATEGORY_TAGS = []
 FLAT_AMOUNT_CATEGORY_TAGS = ['Flash']
 FLAT_AMOUNT = Money.new(cents: 3_99)
-# To disable this discount campaign, uncomment the following line to set FLAT_AMOUNT to nil:
-# FLAT_AMOUNT = nil
 FLAT_AMOUNT_CATEGORY_MESSAGE = 'Flash sale!'
 
 # BOGO
@@ -90,7 +98,7 @@ class SetFlatAmountDiscount
   def apply(line_item)
     # discount inactive if amount is nil.
     return if @amount.nil?
-    line_item.change_line_price(@amount, message: @message)
+    line_item.change_line_price(@amount * line_item.quantity, message: @message)
   end
 end
 
