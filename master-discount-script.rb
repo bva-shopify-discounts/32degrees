@@ -54,6 +54,19 @@ BOGO_DISCOUNT_PERCENT = 50
   # set BOGO_DISCOUNT_PERCENT = 100
   # because free = 100% discount
 
+# SpendXGet$Y
+# Ex: Spend $50 get $10 
+
+# Inputs:
+# * SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
+# To disable: 
+#   SPEND_THRESHOLD_AMOUNT = nil
+SPEND_THRESHOLD = 5000
+# * DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered. 
+DISCOUNT_AMOUNT = 1000
+# * SPEND_X_SAVE_MESSAGE: Message to display in checkout.
+SPEND_X_SAVE_MESSAGE = 'Spend $50 and get $10 off!'
+
 #################################################################################
 # DISCOUNTS
 #################################################################################
@@ -297,42 +310,44 @@ class BOGOCampaign
   end
 end
 
-# Spend $50 get $10 
-# To deactivate: 
-# SPEND_THRESHOLD_AMOUNT = nil
-# do not set to 0.
-SPEND_THRESHOLD_AMOUNT = 5000
-DISCOUNT_AT_THRESHOLD = 1000
-SPEND_X_SAVE_MESSAGE = 'Spend $50 and get $10 off!'
-
 class SPENDXSAVECampaign
-  def initialize()
-
+  def initialize(spend_threshold, discount_amount, message, discount_tags = [])
+    @spend_threshold = spend_threshold
+    @discount_amount = discount_amount
+    @message = message
+    @discount_tags = discount_tags
   end
 
   def run(cart)
-    return if SPEND_THRESHOLD_AMOUNT.nil?
-    total_eligible_price = 0
+    return if @spend_threshold.nil? || @spend_threshold.zero?
+    total_cart_price = 0
 
     # Loop over all the items to find eligble ones and total eligible discount price
     eligible_items = Input.cart.line_items.select do |line_item|
-      total_eligible_price += Integer(line_item.line_price.cents.to_s)
-      product = line_item.variant.product
-      !product.gift_card? && product.tags.include?('spend-and-save')
+      total_cart_price += Integer(line_item.line_price.cents.to_s)
+      true
     end
 
+    #   product = line_item.variant.product
+    #   @discount_tags.any?{ |tag| product.tags.include?(tag) }
+    # end
+
     message = ""
-    total_discount = (total_eligible_price/SPEND_THRESHOLD_AMOUNT).floor * DISCOUNT_AT_THRESHOLD
+    # total_discount is the amount * the number of times over the spend_threshold the cart is.
+    # if total cart price of elligible items is $140 and we say 'spend $50 get $10'
+    # 140/50 rounded down gives us 2. total_discount is 2 * @discount_amount = 2 * $10 = $20 off.
+    total_discount = (total_cart_price/@spend_threshold).floor * @discount_amount
+    # to distribute a flat rate one time total discount amount just set this to @discount_amount
 
     # Distribute the total discount across the products propotional to their price
     remainder = 0.0
     eligible_items.each do |line_item|
       price = Integer(line_item.line_price.cents.to_s)
-      proportion =  price / total_eligible_price
+      proportion =  price / total_cart_price
       discount_float = (total_discount * proportion) + remainder
       discount = discount_float.round
       remainder =  discount_float - discount
-      line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: SPEND_X_SAVE_MESSAGE) unless discount == 0
+      line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: @message) unless discount == 0
     end
   end
 end
@@ -379,7 +394,7 @@ CAMPAIGNS = [
     PercentageDiscount.new(BOGO_DISCOUNT_PERCENT, BOGO_MESSAGE),
     BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
   ),
-  SPENDXSAVECampaign.new()
+  SPENDXSAVECampaign.new(SPEND_THRESHOLD, DISCOUNT_AMOUNT, SPEND_X_SAVE_MESSAGE)
 ]
 
 CAMPAIGNS.each do |campaign|
