@@ -297,6 +297,46 @@ class BOGOCampaign
   end
 end
 
+# Spend $50 get $10 
+# To deactivate: 
+# SPEND_THRESHOLD_AMOUNT = nil
+# do not set to 0.
+SPEND_THRESHOLD_AMOUNT = 5000
+DISCOUNT_AT_THRESHOLD = 1000
+SPEND_X_SAVE_MESSAGE = 'Spend $50 and get $10 off!'
+
+class SPENDXSAVECampaign
+  def initialize()
+
+  end
+
+  def run(cart)
+    return if SPEND_THRESHOLD_AMOUNT.nil?
+    total_eligible_price = 0
+
+    # Loop over all the items to find eligble ones and total eligible discount price
+    eligible_items = Input.cart.line_items.select do |line_item|
+      total_eligible_price += Integer(line_item.line_price.cents.to_s)
+      product = line_item.variant.product
+      !product.gift_card? && product.tags.include?('spend-and-save')
+    end
+
+    message = ""
+    total_discount = (total_eligible_price/SPEND_THRESHOLD_AMOUNT).floor * DISCOUNT_AT_THRESHOLD
+
+    # Distribute the total discount across the products propotional to their price
+    remainder = 0.0
+    eligible_items.each do |line_item|
+      price = Integer(line_item.line_price.cents.to_s)
+      proportion =  price / total_eligible_price
+      discount_float = (total_discount * proportion) + remainder
+      discount = discount_float.round
+      remainder =  discount_float - discount
+      line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: SPEND_X_SAVE_MESSAGE) unless discount == 0
+    end
+  end
+end
+
 #################################################################################
 # EXECUTE CAMPAIGNS
 # Initialize all campaigns and run them, passing in cart to modify.
@@ -338,7 +378,8 @@ CAMPAIGNS = [
     ],
     PercentageDiscount.new(BOGO_DISCOUNT_PERCENT, BOGO_MESSAGE),
     BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
-  )
+  ),
+  SPENDXSAVECampaign.new()
 ]
 
 CAMPAIGNS.each do |campaign|
