@@ -160,7 +160,8 @@ class TieredDiscount
     # line_item.change_line_price(amount * line_item.quantity, message: @message)
     # half price for now. 
     puts "amount #{amount}"
-    line_item.change_line_price(line_item.line_price * 0.5, message: @message)
+    # line_item.change_line_price(line_item.line_price * 0.5, message: @message)
+    line_item.change_line_price(amount, message: @message)
   end
 end
 
