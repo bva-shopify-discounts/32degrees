@@ -67,6 +67,35 @@ DISCOUNT_AMOUNT = 1000
 # * SPEND_X_SAVE_MESSAGE: Message to display in checkout.
 SPEND_X_SAVE_MESSAGE = 'Spend $50 and get $10 off!'
 
+
+QUANTITY_TIER_CAMPAIGN_TAGS = [ 'Polo' ]
+
+
+class QuantityTier
+
+  attr_reader :boundary
+
+  def initialize(boundary)
+    @boundary = boundary
+  end
+
+  def match?(quantity)
+    quantity >= @boundary
+  end
+end
+
+QUANTITY_TIERS =     [
+    QuantityTier.new(6),
+    QuantityTier.new(4),
+    QuantityTier.new(2),
+  ]
+PRICES = [
+  Money.new(cents: 8_00),
+  Money.new(cents: 9_00),
+  Money.new(cents: 10_00)
+]
+TIERED_MESSAGE = 'On sale!'
+
 #################################################################################
 # DISCOUNTS
 #################################################################################
@@ -112,6 +141,26 @@ class SetFlatAmountDiscount
     # discount inactive if amount is nil.
     return if @amount.nil?
     line_item.change_line_price(@amount * line_item.quantity, message: @message)
+  end
+end
+
+class TieredDiscount
+  attr_reader :prices
+  # arguments:
+  # prices: price for this tier (flat rate per quantity)
+  # message: display with line item.
+  def initialize(prices, message)
+    @prices = prices
+    @message = message
+  end
+
+  def apply(line_item, tier_index)
+    return if @prices.nil? || tier_index.nil? || tier_index < 0 || tier_index >= prices.size
+    amount = @prices[tier_index]
+    # line_item.change_line_price(amount * line_item.quantity, message: @message)
+    # half price for now. 
+    puts "amount #{amount}"
+    line_item.change_line_price(line_item.line_price * 0.5, message: @message)
   end
 end
 
@@ -169,6 +218,46 @@ class PriceSelector
     when :lower_than
       line_item.variant.price < @price
     end
+  end
+end
+
+# QuantityTierSelector
+# =============
+#
+# The `QuantityTierSelector` returns a tier index by quantity.
+#
+# Example
+# -------
+   # [
+   #    >= 6,
+   #    >= 4,
+   #    >= 2
+   #  ]
+
+   #  # initialize QuantityTierSelector with tiers in an array, top to bottom
+
+   #  [
+   #    QuantityTier.new(6),
+   #    QuantityTier.new(4),
+   #    QuantityTier.new(2),
+   #  ]
+
+    # we go through them one by one and return when first quantity tier matches.
+    # sort large to small
+
+class QuantityTierSelector
+
+  def initialize(tiers)
+    @tiers = tiers.sort_by(&:boundary).reverse
+  end
+
+  def tier_index(line_item)
+    tier_index = -1
+    @tiers.each_with_index do |tier, index|
+      tier_index = index
+      break if tier.match?(line_item.quantity)
+    end
+    return tier_index
   end
 end
 
@@ -348,6 +437,31 @@ class SPENDXSAVECampaign
   end
 end
 
+class QuantityTierCampaign
+  def initialize(category_selectors, tier_selector, tiered_discount)
+    @category_selectors = category_selectors
+    @tier_selector = tier_selector
+    @tiered_discount = tiered_discount
+  end
+
+  def run(cart)
+    # make sure all category selectors match to get elligible items
+    # temporarily take out to say use all items.
+    # items_in_discount_category = cart.line_items.select do |line_item|
+    #   @category_selectors.all? do |selector|
+    #     selector.match?(line_item)
+    #   end
+    # end
+    items_in_discount_category = cart.line_items
+    puts "items_in_discount_category #{items_in_discount_category.count}"
+    # then use the tier_selector to get the tier_index for each qualified line_item
+    items_in_discount_category.each do |line_item|
+      tier_index = @tier_selector.tier_index(line_item)
+      @tiered_discount.apply(line_item, tier_index)
+    end
+  end
+end
+
 #################################################################################
 # EXECUTE CAMPAIGNS
 # Initialize all campaigns and run them, passing in cart to modify.
@@ -390,7 +504,16 @@ CAMPAIGNS = [
     PercentageDiscount.new(BOGO_DISCOUNT_PERCENT, BOGO_MESSAGE),
     BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
   ),
-  SPENDXSAVECampaign.new(SPEND_THRESHOLD, DISCOUNT_AMOUNT, SPEND_X_SAVE_MESSAGE)
+  SPENDXSAVECampaign.new(SPEND_THRESHOLD, DISCOUNT_AMOUNT, SPEND_X_SAVE_MESSAGE),
+  QuantityTierCampaign.new(
+    # pass category selector to be eligible, then tier selector picks a tier index
+    # campaign assigns the correct price with the tier discount.
+    [
+      CategorySelector.new(QUANTITY_TIER_CAMPAIGN_TAGS)
+    ],
+    QuantityTierSelector.new(QUANTITY_TIERS),
+    TieredDiscount.new(PRICES, TIERED_MESSAGE)
+  )
 ]
 
 CAMPAIGNS.each do |campaign|
