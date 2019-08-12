@@ -173,47 +173,6 @@ class PriceSelector
   end
 end
 
-# QuantityTierSelector
-# =============
-#
-# The `QuantityTierSelector` returns a tier index by quantity.
-#
-# Example
-# -------
-   # [
-   #    >= 6,
-   #    >= 4,
-   #    >= 2
-   #  ]
-
-   #  # initialize QuantityTierSelector with tiers in an array, top to bottom
-
-   #  [
-   #    QuantityTier.new(6),
-   #    QuantityTier.new(4),
-   #    QuantityTier.new(2),
-   #  ]
-
-    # we go through them one by one and return when first quantity tier matches.
-    # sort large to small
-
-class QuantityTierSelector
-
-  def initialize(tiers)
-    @tiers = tiers.sort_by(&:boundary).reverse
-  end
-
-  def tier_index(line_item)
-    tier_index = -1
-    @tiers.each_with_index do |tier, index|
-      tier_index = index
-      break if tier.match?(line_item.quantity)
-    end
-    return tier_index
-  end
-end
-
-
 #################################################################################
 # PARTITIONERS
 #################################################################################
@@ -441,7 +400,7 @@ class QuantityTierCampaign
 end
 
 #################################################################################
-# EXECUTE CAMPAIGNS
+# RUN CAMPAIGNS
 # Initialize all campaigns and run them, passing in cart to modify.
 #################################################################################
 
