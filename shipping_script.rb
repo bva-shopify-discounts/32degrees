@@ -28,7 +28,6 @@ class DiscountShippingOverMinimumCartTotalCampaign
 
   def run
     return unless Input.cart.subtotal_price > @min_cart_total
-    puts "Passed conditions."
     Input.shipping_rates.each do |shipping_rate|
       if @names_of_rates_to_discount.include?(shipping_rate.name)
         shipping_rate.apply_discount(shipping_rate.price * @discount_percent, message: @discount_shipping_message)
