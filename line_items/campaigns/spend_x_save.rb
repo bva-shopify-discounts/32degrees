@@ -2,14 +2,27 @@
 
 class SPENDXSAVECampaign
 
-  def initialize(spend_threshold, discount_amount, message, discount_tags = [])
+  def initialize(spend_threshold, discount_amount, message, discount_tags = [], code = -1)
     @spend_threshold = spend_threshold
     @discount_amount = discount_amount
     @message = message
     @discount_tags = discount_tags
+    @code = code
   end
 
   def run(cart)
+    if @code != -1
+      # if there is a code, check if there is one on the cart
+      if cart.discount_code
+        # return unless code matches. then run discount.
+        return unless cart.discount_code.code == @code
+        cart.discount_code.reject({ message: @message })
+      else
+        # code is required but is not in cart, return without running discount.
+        return
+      end
+    end
+
     return if @spend_threshold.nil? || @spend_threshold.zero?
     total_cart_price = 0
 
