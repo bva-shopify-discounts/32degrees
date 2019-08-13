@@ -3,12 +3,24 @@
  
 class CategoryCampaign
 
-  def initialize(category_selectors, discount)
+  def initialize(category_selectors, discount, code = -1)
     @category_selectors = category_selectors
     @discount = discount
+    @code = code
   end
 
   def run(cart)
+    if @code != -1
+      # if there is a code, check if there is one on the cart
+      if cart.discount_code
+        # return unless code matches. then run discount.
+        return unless cart.discount_code.code == @code
+      else
+        # code is required but is not in cart, return without running discount.
+        return
+      end
+    end
+
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
         selector.match?(line_item)

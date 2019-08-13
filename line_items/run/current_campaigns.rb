@@ -78,6 +78,43 @@ MESSAGE = 'Discount!'
 #   PercentageDiscount.new(PERCENT, MESSAGE)
 # )
 
+###########################################
+
+# # Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX (6) 
+# # Select all items in cart tagged with 'Flash' 
+# # Set to a flat amount of $3.99
+# # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
+
+# TAGS = ['Flash']
+# FLAT_AMOUNT = Money.new(cents: 3_99)
+# MESSAGE = 'Flash sale!'
+
+# CAMPAIGNS << CategoryCampaign.new(
+#   [
+#     CategorySelector.new(TAGS)
+#   ],
+#   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
+# )
+
+
+
+###########################################
+
+# Add a required coupon code to the flash sale above.
+
+TAGS = ['Flash']
+FLAT_AMOUNT = Money.new(cents: 3_99)
+MESSAGE = 'Summer Flash sale!'
+COUPON_CODE = 'SUMMER'
+
+CAMPAIGNS << CategoryCampaign.new(
+  [
+    CategorySelector.new(TAGS)
+  ],
+  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
+  COUPON_CODE
+)
+
 
 ###########################################
 
@@ -98,26 +135,6 @@ MESSAGE = 'Discount!'
 #   ],
 #   PercentageDiscount.new(PERCENT, MESSAGE)
 # )
-
-
-###########################################
-
-# # Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX (6) 
-# # Select all items in cart tagged with 'Flash' 
-# # Set to a flat amount of $3.99
-# # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
-
-# TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(cents: 3_99)
-# MESSAGE = 'Flash sale!'
-
-# CAMPAIGNS << CategoryCampaign.new(
-#   [
-#     CategorySelector.new(TAGS)
-#   ],
-#   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
-# )
-
 
 ###########################################
 

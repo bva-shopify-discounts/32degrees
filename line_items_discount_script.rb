@@ -46,6 +46,7 @@ end
 
 # Partitions the items and returns the items that are to be discounted.
 # Used in BOGO campaign
+
 class BOGOPartitioner
 
   def initialize(paid_item_count, discounted_item_count)
@@ -136,8 +137,7 @@ end
 
 # End of selector_category.rb 
 
-
-# Selects items by price.
+# Selects items in the cart that are greater than (or less than) a price.
 #
 # Example
 # -------
@@ -171,6 +171,7 @@ end
 # To buy one get one free, you would say buy quantity = 1 and get X = 100% off.
 
 class BOGOCampaign
+
   def initialize(category_selectors, discount, partition)
     @category_selectors = category_selectors
     @discount = discount
@@ -221,12 +222,24 @@ end
  
 class CategoryCampaign
 
-  def initialize(category_selectors, discount)
+  def initialize(category_selectors, discount, code = -1)
     @category_selectors = category_selectors
     @discount = discount
+    @code = code
   end
 
   def run(cart)
+    if @code != -1
+      # if there is a code, check if there is one on the cart
+      if cart.discount_code
+        # return unless code matches. then run discount.
+        return unless cart.discount_code.code == @code
+      else
+        # code is required but is not in cart, return without running discount.
+        return
+      end
+    end
+
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
         selector.match?(line_item)
@@ -347,6 +360,7 @@ end
 # BUY MORE SAVE MORE: X QTY FOR $Y
 
 class QuantityTierCampaign
+
   def initialize(discounts_by_quantity, selectors = [])
     @discounts_by_quantity = discounts_by_quantity
     @selectors = selectors
@@ -411,6 +425,7 @@ end
 # SPEND $X SAVE $Y
 
 class SPENDXSAVECampaign
+  
   def initialize(spend_threshold, discount_amount, message, discount_tags = [])
     @spend_threshold = spend_threshold
     @discount_amount = discount_amount
@@ -549,6 +564,43 @@ MESSAGE = 'Discount!'
 #   PercentageDiscount.new(PERCENT, MESSAGE)
 # )
 
+###########################################
+
+# # Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX (6) 
+# # Select all items in cart tagged with 'Flash' 
+# # Set to a flat amount of $3.99
+# # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
+
+# TAGS = ['Flash']
+# FLAT_AMOUNT = Money.new(cents: 3_99)
+# MESSAGE = 'Flash sale!'
+
+# CAMPAIGNS << CategoryCampaign.new(
+#   [
+#     CategorySelector.new(TAGS)
+#   ],
+#   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
+# )
+
+
+
+###########################################
+
+# Add a required coupon code to the flash sale above.
+
+TAGS = ['Flash']
+FLAT_AMOUNT = Money.new(cents: 3_99)
+MESSAGE = 'Summer Flash sale!'
+COUPON_CODE = 'SUMMER'
+
+CAMPAIGNS << CategoryCampaign.new(
+  [
+    CategorySelector.new(TAGS)
+  ],
+  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
+  COUPON_CODE
+)
+
 
 ###########################################
 
@@ -569,26 +621,6 @@ MESSAGE = 'Discount!'
 #   ],
 #   PercentageDiscount.new(PERCENT, MESSAGE)
 # )
-
-
-###########################################
-
-# # Category Campaign 3: FLASH SALE SPECIFIC PRODUCT(S) PRICE $X.XX (6) 
-# # Select all items in cart tagged with 'Flash' 
-# # Set to a flat amount of $3.99
-# # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
-
-# TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(cents: 3_99)
-# MESSAGE = 'Flash sale!'
-
-# CAMPAIGNS << CategoryCampaign.new(
-#   [
-#     CategorySelector.new(TAGS)
-#   ],
-#   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
-# )
-
 
 ###########################################
 
