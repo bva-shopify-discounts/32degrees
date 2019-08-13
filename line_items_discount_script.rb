@@ -1,5 +1,35 @@
 
 ########## SHARED FUNCTIONS AND CLASSES ##########
+class CouponCode
+  attr_reader :campaign_code, :message
+
+  def initialize(campaign_code, message)
+    # this object would not be created if no required campaign code. 
+    @campaign_code = campaign_code
+    @message = message
+  end
+
+  def disqualifies?(cart)
+    # shopify scripts require you to check cart object before calling its methods
+    if cart
+      if cart.discount_code && cart.discount_code.code == campaign_code
+        # if there is a code on the cart 
+        # and if it matches the required campaign code
+        # then remove the discount code from the cart with required message
+        # then return false (qualifies) to apply campaign discount instead
+        cart.discount_code.reject({ message: message })
+        return false
+      else
+        # in this case discount code does not match or is not on cart
+        # then return true because we are disqualified
+        return true
+      end    
+    end
+  end
+end
+
+# End of coupon_code.rb 
+
 # Apply a percentage discount to a line item.
 class PercentageDiscount
   attr_reader :message
@@ -172,27 +202,30 @@ end
 # To buy one get one free, you would say buy quantity = 1 and get X = 100% off.
 
 class BOGOCampaign
+  attr_reader :coupon_code
 
   def initialize(category_selectors, discount, partition, code = -1)
     @category_selectors = category_selectors
     @discount = discount
     @partition = partition
-    @code = code
-    @message = @discount.message
+    # @code = code
+    # @message = @discount.message
+    @coupon_code = CouponCode.new(code, @discount.message) if code
   end
 
   def run(cart)
-    if @code != -1
-      # if there is a code, check if there is one on the cart
-      if cart.discount_code
-        # return unless code matches. then run discount.
-        return unless cart.discount_code.code == @code
-        cart.discount_code.reject({ message: @message })
-      else
-        # code is required but is not in cart, return without running discount.
-        return
-      end
-    end
+    # if @code != -1
+    #   # if there is a code, check if there is one on the cart
+    #   if cart.discount_code
+    #     # return unless code matches. then run discount.
+    #     return unless cart.discount_code.code == @code
+    #     cart.discount_code.reject({ message: @message })
+    #   else
+    #     # code is required but is not in cart, return without running discount.
+    #     return
+    #   end
+    # end
+    return if @coupon_code && @coupon_code.disqualifies?(cart)
 
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
@@ -236,26 +269,29 @@ end
 # Apply discount to any cart items which pass all category selectors.
  
 class CategoryCampaign
+  attr_reader :coupon_code
 
-  def initialize(category_selectors, discount, code = -1)
+  def initialize(category_selectors, discount, code = nil)
     @category_selectors = category_selectors
     @discount = discount
-    @code = code
-    @message = @discount.message
+    @coupon_code = CouponCode.new(code, @discount.message) if code
+    # @message = @discount.message
   end
 
   def run(cart)
-    if @code != -1
-      # if there is a code, check if there is one on the cart
-      if cart.discount_code
-        # return unless code matches. then run discount.
-        return unless cart.discount_code.code == @code
-        cart.discount_code.reject({ message: @message })
-      else
-        # code is required but is not in cart, return without running discount.
-        return
-      end
-    end
+    # if @code != -1
+    #   # if there is a code, check if there is one on the cart
+    #   if cart.discount_code
+    #     # return unless code matches. then run discount.
+    #     return unless cart.discount_code.code == @code
+    #     cart.discount_code.reject({ message: @message })
+    #   else
+    #     # code is required but is not in cart, return without running discount.
+    #     return
+    #   end
+    # end
+
+    return if @coupon_code && @coupon_code.disqualifies?(cart)
 
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
@@ -677,21 +713,21 @@ CAMPAIGNS << CategoryCampaign.new(
 
 # Same discount as above but unlocked with a coupon code.
 
-TAGS = ['BOGO']
-MESSAGE = 'Buy 2 get 1 at 50% off!'
-PAID_ITEM_COUNT = 2
-DISCOUNTED_ITEM_COUNT = 1
-PERCENT = 50
-COUPON_CODE = 'SUMMER'
+# TAGS = ['BOGO']
+# MESSAGE = 'Buy 2 get 1 at 50% off!'
+# PAID_ITEM_COUNT = 2
+# DISCOUNTED_ITEM_COUNT = 1
+# PERCENT = 50
+# COUPON_CODE = 'SUMMER'
 
-CAMPAIGNS << BOGOCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
-  COUPON_CODE
-)
+# CAMPAIGNS << BOGOCampaign.new(
+#   [
+#     CategorySelector.new(TAGS)
+#   ],
+#   PercentageDiscount.new(PERCENT, MESSAGE),
+#   BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
+#   COUPON_CODE
+# )
 
 
 
@@ -736,36 +772,36 @@ CAMPAIGNS << BOGOCampaign.new(
 
 ###########################################
 
-# BUY MORE SAVE MORE: X QTY FOR $Y
+# # BUY MORE SAVE MORE: X QTY FOR $Y
 
-# Tag products for tiered discount campaign. Optional. 
-# Without tags, any item triggers the discount when bought in enough quantity.
-TAGS = ['BUYXQTY']
+# # Tag products for tiered discount campaign. Optional. 
+# # Without tags, any item triggers the discount when bought in enough quantity.
+# TAGS = ['BUYXQTY']
 
-# quantity => discount type with price and message.
-# Use flat rate and or percent discount for any tier with any message.
-# List tiers in descending order by quantity. Highest quantity tier at the top.
+# # quantity => discount type with price and message.
+# # Use flat rate and or percent discount for any tier with any message.
+# # List tiers in descending order by quantity. Highest quantity tier at the top.
 
-# Flat Rate example: 
-DISCOUNTS_BY_QUANTITY = {
-  40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
-  30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
-  20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
-  10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
-}
-
-# Percentage discount example
+# # Flat Rate example: 
 # DISCOUNTS_BY_QUANTITY = {
-#   20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
-#   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
+#   40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
+#   30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
+#   20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
+#   10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
 # }
 
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ]
-)
+# # Percentage discount example
+# # DISCOUNTS_BY_QUANTITY = {
+# #   20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
+# #   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
+# # }
+
+# CAMPAIGNS << QuantityTierCampaign.new(
+#   DISCOUNTS_BY_QUANTITY,
+#   [
+#     CategorySelector.new(TAGS),
+#   ]
+# )
 
 
 
