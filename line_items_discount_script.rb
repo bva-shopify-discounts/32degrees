@@ -2,6 +2,7 @@
 ########## SHARED FUNCTIONS AND CLASSES ##########
 # Apply a percentage discount to a line item.
 class PercentageDiscount
+  attr_reader :message
 
   def initialize(percent, message)
     @percent = Decimal.new(percent) / 100.0
@@ -172,13 +173,27 @@ end
 
 class BOGOCampaign
 
-  def initialize(category_selectors, discount, partition)
+  def initialize(category_selectors, discount, partition, code = -1)
     @category_selectors = category_selectors
     @discount = discount
     @partition = partition
+    @code = code
+    @message = @discount.message
   end
 
   def run(cart)
+    if @code != -1
+      # if there is a code, check if there is one on the cart
+      if cart.discount_code
+        # return unless code matches. then run discount.
+        return unless cart.discount_code.code == @code
+        cart.discount_code.reject({ message: @message })
+      else
+        # code is required but is not in cart, return without running discount.
+        return
+      end
+    end
+
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
         selector.match?(line_item)
@@ -660,6 +675,25 @@ CAMPAIGNS << CategoryCampaign.new(
 #   BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
 # )
 
+# Same discount as above but unlocked with a coupon code.
+
+TAGS = ['BOGO']
+MESSAGE = 'Buy 2 get 1 at 50% off!'
+PAID_ITEM_COUNT = 2
+DISCOUNTED_ITEM_COUNT = 1
+PERCENT = 50
+COUPON_CODE = 'SUMMER'
+
+CAMPAIGNS << BOGOCampaign.new(
+  [
+    CategorySelector.new(TAGS)
+  ],
+  PercentageDiscount.new(PERCENT, MESSAGE),
+  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
+  COUPON_CODE
+)
+
+
 
 
 ###########################################
@@ -684,19 +718,19 @@ CAMPAIGNS << CategoryCampaign.new(
 # )
 
 # Same, but with a required coupon code
-SPEND_THRESHOLD = 5000
-DISCOUNT_AMOUNT = 1000
-MESSAGE = 'Spend $50 and get $10 off!'
-COUPON_CODE = 'SUMMER'
-TAGS = []
+# SPEND_THRESHOLD = 5000
+# DISCOUNT_AMOUNT = 1000
+# MESSAGE = 'Spend $50 and get $10 off!'
+# COUPON_CODE = 'SUMMER'
+# TAGS = []
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT_AMOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE
-)
+# CAMPAIGNS << SPENDXSAVECampaign.new(
+#   SPEND_THRESHOLD,
+#   DISCOUNT_AMOUNT,
+#   MESSAGE,
+#   TAGS,
+#   COUPON_CODE
+# )
 
 
 

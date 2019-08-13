@@ -159,6 +159,25 @@ CAMPAIGNS << CategoryCampaign.new(
 #   BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
 # )
 
+# Same discount as above but unlocked with a coupon code.
+
+TAGS = ['BOGO']
+MESSAGE = 'Buy 2 get 1 at 50% off!'
+PAID_ITEM_COUNT = 2
+DISCOUNTED_ITEM_COUNT = 1
+PERCENT = 50
+COUPON_CODE = 'SUMMER'
+
+CAMPAIGNS << BOGOCampaign.new(
+  [
+    CategorySelector.new(TAGS)
+  ],
+  PercentageDiscount.new(PERCENT, MESSAGE),
+  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
+  COUPON_CODE
+)
+
+
 
 
 ###########################################
@@ -183,19 +202,19 @@ CAMPAIGNS << CategoryCampaign.new(
 # )
 
 # Same, but with a required coupon code
-SPEND_THRESHOLD = 5000
-DISCOUNT_AMOUNT = 1000
-MESSAGE = 'Spend $50 and get $10 off!'
-COUPON_CODE = 'SUMMER'
-TAGS = []
+# SPEND_THRESHOLD = 5000
+# DISCOUNT_AMOUNT = 1000
+# MESSAGE = 'Spend $50 and get $10 off!'
+# COUPON_CODE = 'SUMMER'
+# TAGS = []
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT_AMOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE
-)
+# CAMPAIGNS << SPENDXSAVECampaign.new(
+#   SPEND_THRESHOLD,
+#   DISCOUNT_AMOUNT,
+#   MESSAGE,
+#   TAGS,
+#   COUPON_CODE
+# )
 
 
 

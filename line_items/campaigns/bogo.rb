@@ -4,13 +4,27 @@
 
 class BOGOCampaign
 
-  def initialize(category_selectors, discount, partition)
+  def initialize(category_selectors, discount, partition, code = -1)
     @category_selectors = category_selectors
     @discount = discount
     @partition = partition
+    @code = code
+    @message = @discount.message
   end
 
   def run(cart)
+    if @code != -1
+      # if there is a code, check if there is one on the cart
+      if cart.discount_code
+        # return unless code matches. then run discount.
+        return unless cart.discount_code.code == @code
+        cart.discount_code.reject({ message: @message })
+      else
+        # code is required but is not in cart, return without running discount.
+        return
+      end
+    end
+
     items_in_discount_category = cart.line_items.select do |line_item|
       @category_selectors.all? do |selector|
         selector.match?(line_item)

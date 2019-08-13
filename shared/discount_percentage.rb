@@ -1,5 +1,6 @@
 # Apply a percentage discount to a line item.
 class PercentageDiscount
+  attr_reader :message
 
   def initialize(percent, message)
     @percent = Decimal.new(percent) / 100.0
