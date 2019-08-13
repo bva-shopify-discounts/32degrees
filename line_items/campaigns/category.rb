@@ -15,6 +15,7 @@ class CategoryCampaign
       if cart.discount_code
         # return unless code matches. then run discount.
         return unless cart.discount_code.code == @code
+        cart.discount_code.reject({ message: @discount.message })
       else
         # code is required but is not in cart, return without running discount.
         return

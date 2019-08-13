@@ -5,7 +5,7 @@
 #   * Items tagged flash sale are $3.99
 #
 class SetFlatAmountDiscount
-
+  attr_reader :message
   # arguments:
   # amount: flat amount to set line item price to as class Money.
   # message: display with line item.

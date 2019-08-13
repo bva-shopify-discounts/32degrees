@@ -5,7 +5,7 @@
 # Comment out the ones you don't want by selecting and pressing 'Command + /'
 # Copy and paste to create new campaigns and change the available settings.
 
-# Initialization steps (Do not touch.)
+# Initialization steps (Please do not touch.)
 CAMPAIGNS = []
 TAGS = []
 MESSAGE = 'Discount!'

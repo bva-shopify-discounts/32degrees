@@ -26,7 +26,7 @@ end
 #   * Items tagged flash sale are $3.99
 #
 class SetFlatAmountDiscount
-
+  attr_reader :message
   # arguments:
   # amount: flat amount to set line item price to as class Money.
   # message: display with line item.
@@ -234,6 +234,7 @@ class CategoryCampaign
       if cart.discount_code
         # return unless code matches. then run discount.
         return unless cart.discount_code.code == @code
+        cart.discount_code.reject({ message: @discount.message })
       else
         # code is required but is not in cart, return without running discount.
         return
@@ -425,7 +426,7 @@ end
 # SPEND $X SAVE $Y
 
 class SPENDXSAVECampaign
-  
+
   def initialize(spend_threshold, discount_amount, message, discount_tags = [])
     @spend_threshold = spend_threshold
     @discount_amount = discount_amount
