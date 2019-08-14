@@ -2,12 +2,15 @@
 
 class QuantityTierCampaign
 
-  def initialize(discounts_by_quantity, selectors = [])
+  def initialize(discounts_by_quantity, selectors = [], code = nil)
     @discounts_by_quantity = discounts_by_quantity
     @selectors = selectors
+    @coupon_code = CouponCode.new(code, ' ') if code
   end
 
   def run(cart)
+    return if @coupon_code && @coupon_code.disqualifies?(cart)
+
     items_in_discount_category = cart.line_items.select do |line_item|
       # if no selectors, item goes into discount category. default all.
       @selectors.all? do |selector|

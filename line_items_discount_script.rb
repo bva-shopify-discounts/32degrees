@@ -414,12 +414,15 @@ end
 
 class QuantityTierCampaign
 
-  def initialize(discounts_by_quantity, selectors = [])
+  def initialize(discounts_by_quantity, selectors = [], code = nil)
     @discounts_by_quantity = discounts_by_quantity
     @selectors = selectors
+    @coupon_code = CouponCode.new(code, ' ') if code
   end
 
   def run(cart)
+    return if @coupon_code && @coupon_code.disqualifies?(cart)
+
     items_in_discount_category = cart.line_items.select do |line_item|
       # if no selectors, item goes into discount category. default all.
       @selectors.all? do |selector|
@@ -654,18 +657,18 @@ MESSAGE = 'Discount!'
 
 # Add a required coupon code to the flash sale above.
 
-TAGS = ['Flash']
-FLAT_AMOUNT = Money.new(cents: 3_99)
-MESSAGE = 'Summer Flash sale!'
-COUPON_CODE = 'SUMMER'
+# TAGS = ['Flash']
+# FLAT_AMOUNT = Money.new(cents: 3_99)
+# MESSAGE = 'Summer Flash sale!'
+# COUPON_CODE = 'SUMMER'
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
-  COUPON_CODE
-)
+# CAMPAIGNS << CategoryCampaign.new(
+#   [
+#     CategorySelector.new(TAGS)
+#   ],
+#   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
+#   COUPON_CODE
+# )
 
 
 ###########################################
@@ -776,32 +779,34 @@ CAMPAIGNS << CategoryCampaign.new(
 
 # # Tag products for tiered discount campaign. Optional. 
 # # Without tags, any item triggers the discount when bought in enough quantity.
-# TAGS = ['BUYXQTY']
+TAGS = ['BUYXQTY']
+COUPON_CODE = 'SUMMER'
 
 # # quantity => discount type with price and message.
 # # Use flat rate and or percent discount for any tier with any message.
 # # List tiers in descending order by quantity. Highest quantity tier at the top.
 
-# # Flat Rate example: 
+# Flat Rate example: 
+DISCOUNTS_BY_QUANTITY = {
+  40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
+  30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
+  20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
+  10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
+}
+
+# Percentage discount example
 # DISCOUNTS_BY_QUANTITY = {
-#   40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
-#   30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
-#   20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
-#   10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
+#   20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
+#   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
 # }
 
-# # Percentage discount example
-# # DISCOUNTS_BY_QUANTITY = {
-# #   20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
-# #   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
-# # }
-
-# CAMPAIGNS << QuantityTierCampaign.new(
-#   DISCOUNTS_BY_QUANTITY,
-#   [
-#     CategorySelector.new(TAGS),
-#   ]
-# )
+CAMPAIGNS << QuantityTierCampaign.new(
+  DISCOUNTS_BY_QUANTITY,
+  [
+    CategorySelector.new(TAGS),
+  ],
+  COUPON_CODE
+)
 
 
 
