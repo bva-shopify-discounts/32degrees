@@ -5,7 +5,7 @@
 class BOGOCampaign
   attr_reader :coupon_code
 
-  def initialize(category_selectors, discount, partition, code = -1)
+  def initialize(category_selectors, discount, partition, code = nil)
     @category_selectors = category_selectors
     @discount = discount
     @partition = partition

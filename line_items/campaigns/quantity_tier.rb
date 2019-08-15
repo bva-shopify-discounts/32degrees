@@ -1,6 +1,7 @@
 # BUY MORE SAVE MORE: X QTY FOR $Y
 
 class QuantityTierCampaign
+  attr_reader :coupon_code
 
   def initialize(discounts_by_quantity, selectors = [], code = nil)
     @discounts_by_quantity = discounts_by_quantity

@@ -1,29 +1,20 @@
 # SPEND $X SAVE $Y
 
 class SPENDXSAVECampaign
+  attr_reader :coupon_code
 
-  def initialize(spend_threshold, discount_amount, message, discount_tags = [], code = -1)
+  def initialize(spend_threshold, discount_amount, message, discount_tags = [], code = nil)
     @spend_threshold = spend_threshold
     @discount_amount = discount_amount
     @message = message
     @discount_tags = discount_tags
-    @code = code
+    @coupon_code = CouponCode.new(code, ' ') if code
   end
 
   def run(cart)
-    if @code != -1
-      # if there is a code, check if there is one on the cart
-      if cart.discount_code
-        # return unless code matches. then run discount.
-        return unless cart.discount_code.code == @code
-        cart.discount_code.reject({ message: @message })
-      else
-        # code is required but is not in cart, return without running discount.
-        return
-      end
-    end
-
+    return if @coupon_code && @coupon_code.disqualifies?(cart)
     return if @spend_threshold.nil? || @spend_threshold.zero?
+
     total_cart_price = 0
 
     eligible_items = Input.cart.line_items.select do |line_item|

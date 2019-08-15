@@ -14,7 +14,7 @@ MESSAGE = 'Discount!'
 
 
 
-# ########## Entire Site Campaign ########## 
+########## Entire Site Campaign ########## 
 # # ENTIRE SITE X% OFF
 # # Entire site 25% off for summer discount event.
 
@@ -62,7 +62,7 @@ MESSAGE = 'Discount!'
 # Apply 50% discount
 
 # TAGS = ['OUTERWEAR', 'ACCESSORIES']
-# GREATER_OR_LOWER_THAN = :lower_than
+# GREATER_OR_LOWER_THAN = :less_than
 # # You can also separate out items with prices greater than X by uncommenting this:
 # # GREATER_OR_LOWER_THAN = :greater_than
 # CATEGORY_PRICE = Money.new(cents: 20_00)
@@ -86,21 +86,26 @@ MESSAGE = 'Discount!'
 # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
 
 # TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(cents: 3_99)
-# MESSAGE = 'Flash sale!'
+# FLAT_AMOUNT = Money.new(cents: 7_50)
+# MESSAGE = 'Flash Sale!'
 
 # CAMPAIGNS << CategoryCampaign.new(
 #   [
-#     CategorySelector.new(TAGS)
+#     CategorySelector.new(TAGS),
 #   ],
 #   SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
 # )
 
 
 
+
 ###########################################
 
 # Add a required coupon code to the flash sale above.
+
+# Item1 9.99
+# Item2 11.99
+# if I buy both then $7.50 each for both item 1 and 2
 
 # TAGS = ['Flash']
 # FLAT_AMOUNT = Money.new(cents: 3_99)
@@ -186,22 +191,24 @@ MESSAGE = 'Discount!'
 # SpendXGet$Y
 # Ex: Spend $50 get $10 
 
-# # Inputs:
-# # Because it makes the math cleaner, we use cents instead of a Money object in this campaign type.
-# # SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
-# SPEND_THRESHOLD = 5000
-# # DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
-# DISCOUNT_AMOUNT = 1000
-# # MESSAGE: Message to display in checkout.
-# MESSAGE = 'Spend $50 and get $10 off!'
+# Inputs:
+# Because it makes the math cleaner, we use cents instead of a Money object in this campaign type.
+# SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
+SPEND_THRESHOLD = 5000
+# DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
+DISCOUNT_AMOUNT = 1000
+# MESSAGE: Message to display in checkout.
+MESSAGE = 'Spend $50 and get $10 off!'
 
-# CAMPAIGNS << SPENDXSAVECampaign.new(
-#   SPEND_THRESHOLD,
-#   DISCOUNT_AMOUNT,
-#   MESSAGE
-# )
+CAMPAIGNS << SPENDXSAVECampaign.new(
+  SPEND_THRESHOLD,
+  DISCOUNT_AMOUNT,
+  MESSAGE
+)
 
-# Same, but with a required coupon code
+# add functionality for both flat rate and percent off for qualifying orders.
+
+# # Same, but with a required coupon code
 # SPEND_THRESHOLD = 5000
 # DISCOUNT_AMOUNT = 1000
 # MESSAGE = 'Spend $50 and get $10 off!'
@@ -224,20 +231,22 @@ MESSAGE = 'Discount!'
 
 # # Tag products for tiered discount campaign. Optional. 
 # # Without tags, any item triggers the discount when bought in enough quantity.
-TAGS = ['BUYXQTY']
-COUPON_CODE = 'SUMMER'
+# TAGS = ['BUYXQTY']
+# COUPON_CODE = 'SUMMER'
 
-# # quantity => discount type with price and message.
-# # Use flat rate and or percent discount for any tier with any message.
-# # List tiers in descending order by quantity. Highest quantity tier at the top.
+# # # quantity => discount type with price and message.
+# # # Use flat rate and or percent discount for any tier with any message.
+# # # List tiers in descending order by quantity. Highest quantity tier at the top.
 
-# Flat Rate example: 
-DISCOUNTS_BY_QUANTITY = {
-  40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
-  30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
-  20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
-  10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
-}
+# # Flat Rate example: 
+# DISCOUNTS_BY_QUANTITY = {
+#   40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
+#   30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
+#   20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
+#   10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
+# }
+
+# A and B are $10 each, buy them together they are $7.50
 
 # Percentage discount example
 # DISCOUNTS_BY_QUANTITY = {
@@ -245,13 +254,12 @@ DISCOUNTS_BY_QUANTITY = {
 #   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
 # }
 
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ],
-  COUPON_CODE
-)
+# CAMPAIGNS << QuantityTierCampaign.new(
+#   DISCOUNTS_BY_QUANTITY,
+#   [
+#     CategorySelector.new(TAGS),
+#   ],
+# )
 
 
 

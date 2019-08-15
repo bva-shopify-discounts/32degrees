@@ -15,9 +15,9 @@ class PriceSelector
   def match?(line_item)
     case @condition
     when :greater_than
-      line_item.variant.price > @price
-    when :lower_than
-      line_item.variant.price < @price
+      line_item.line_price > @price
+    when :less_than
+      line_item.line_price < @price
     end
   end
 end
