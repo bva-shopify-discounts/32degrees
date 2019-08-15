@@ -7,23 +7,10 @@ class CategoryCampaign
   def initialize(category_selectors, discount, code = nil)
     @category_selectors = category_selectors
     @discount = discount
-    @coupon_code = CouponCode.new(code, @discount.message) if code
-    # @message = @discount.message
+    @coupon_code = CouponCode.new(code) if code
   end
 
   def run(cart)
-    # if @code != -1
-    #   # if there is a code, check if there is one on the cart
-    #   if cart.discount_code
-    #     # return unless code matches. then run discount.
-    #     return unless cart.discount_code.code == @code
-    #     cart.discount_code.reject({ message: @message })
-    #   else
-    #     # code is required but is not in cart, return without running discount.
-    #     return
-    #   end
-    # end
-
     return if @coupon_code && @coupon_code.disqualifies?(cart)
 
     items_in_discount_category = cart.line_items.select do |line_item|

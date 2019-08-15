@@ -6,7 +6,7 @@ class QuantityTierCampaign
   def initialize(discounts_by_quantity, selectors = [], code = nil)
     @discounts_by_quantity = discounts_by_quantity
     @selectors = selectors
-    @coupon_code = CouponCode.new(code, ' ') if code
+    @coupon_code = CouponCode.new(code) if code
   end
 
   def run(cart)

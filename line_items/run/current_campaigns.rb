@@ -128,18 +128,20 @@ MESSAGE = 'Discount!'
 # # Featured hats 10% off! x
 # # Select all hats that are ALSO tagged as 'featured'
 
-# TAG_OPTIONS_A = ['Hat']
-# TAG_OPTIONS_B = ['Featured']
-# PERCENT = 10
-# MESSAGE = 'Featured hats 10% off!'
+TAG_OPTIONS_A = ['Hat']
+TAG_OPTIONS_B = ['Featured']
+PERCENT = 10
+MESSAGE = 'Featured hats 10% off!'
+COUPON_CODE = 'SUMMER'
 
-# CAMPAIGNS << CategoryCampaign.new(
-#   [
-#     CategorySelector.new(TAG_OPTIONS_A),
-#     CategorySelector.new(TAG_OPTIONS_B)
-#   ],
-#   PercentageDiscount.new(PERCENT, MESSAGE)
-# )
+CAMPAIGNS << CategoryCampaign.new(
+  [
+    CategorySelector.new(TAG_OPTIONS_A),
+    CategorySelector.new(TAG_OPTIONS_B)
+  ],
+  PercentageDiscount.new(PERCENT, MESSAGE),
+  COUPON_CODE
+)
 
 ###########################################
 

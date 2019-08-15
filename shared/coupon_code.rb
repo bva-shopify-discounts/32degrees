@@ -1,8 +1,8 @@
 class CouponCode
   attr_reader :campaign_code, :message
 
-  def initialize(campaign_code, message)
-    # this object would not be created if no required campaign code. 
+  def initialize(campaign_code, message = '  ')
+    # this object would not be created if the discount campaign doesn't require a coupon code.
     @campaign_code = campaign_code
     @message = message
   end
@@ -21,7 +21,7 @@ class CouponCode
         # in this case discount code does not match or is not on cart
         # then return true because we are disqualified
         return true
-      end    
+      end
     end
   end
 end

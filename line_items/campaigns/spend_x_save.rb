@@ -8,19 +8,21 @@ class SPENDXSAVECampaign
     @discount_amount = discount_amount
     @message = message
     @discount_tags = discount_tags
-    @coupon_code = CouponCode.new(code, ' ') if code
+    @coupon_code = CouponCode.new(code) if code
   end
 
   def run(cart)
     return if @coupon_code && @coupon_code.disqualifies?(cart)
     return if @spend_threshold.nil? || @spend_threshold.zero?
 
-    total_cart_price = 0
+    total_cart_price = Decimal.new(0)
 
     eligible_items = Input.cart.line_items.select do |line_item|
       # if eligible, put the line_item in the array and add its price to total_cart_price.
       if @discount_tags.empty? || @discount_tags.any?{ |tag| product.tags.include?(tag) }
-        total_cart_price += Integer(line_item.line_price.cents.to_s)
+        # total_cart_price += Integer(line_item.line_price.cents.to_s)
+        puts "line_item.line_price.cents #{line_item.line_price.cents} #{line_item.line_price.cents.class.methods}"
+        total_cart_price += line_item.line_price.cents
       end
     end
 
@@ -31,17 +33,22 @@ class SPENDXSAVECampaign
     # to distribute a flat rate one time total discount amount just set this to @discount_amount
 
     # Distribute the total discount across the products propotional to their price
-    remainder = 0.0
+    remainder = Decimal.new(0)
     eligible_items.each do |line_item|
-      price = Integer(line_item.line_price.cents.to_s)
+      price = line_item.line_price.cents
       proportion =  price / total_cart_price
+      # multiply total_discount by proportion for this item. 
+      # add remainder - it will initially be 0. 
       discount_float = (total_discount * proportion) + remainder
+      # round to nearest.
       discount = discount_float.round
+      # get remainder to pass to next
       remainder =  discount_float - discount
       line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: @message) unless discount == 0
     end
   end
 end
+# Working.
 
 # Usage:
 # 
