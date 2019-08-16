@@ -18,4 +18,8 @@ class PercentageDiscount
     puts new_line_price
   end
 
+  # need to implement these in each discount.
+  def amount
+    @percent
+  end
 end

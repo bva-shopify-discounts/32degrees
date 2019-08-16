@@ -50,6 +50,10 @@ class PercentageDiscount
     puts new_line_price
   end
 
+  # need to implement these in each discount.
+  def amount
+    @percent
+  end
 end
 
 # End of discount_percentage.rb 
@@ -61,7 +65,7 @@ end
 #   * Items tagged flash sale are $3.99
 #
 class SetFlatAmountDiscount
-  attr_reader :message
+  attr_reader :message, :amount
   # arguments:
   # amount: flat amount to set line item price to as class Money.
   # message: display with line item.
@@ -462,71 +466,69 @@ end
 class SPENDXSAVECampaign
   attr_reader :coupon_code
 
-  def initialize(spend_threshold, discount_amount, message, discount_tags = [], code = nil)
+  def initialize(spend_threshold, discount, message, discount_tags = [], code = nil, once = false)
     @spend_threshold = spend_threshold
-    @discount_amount = discount_amount
+    @discount = discount
     @message = message
     @discount_tags = discount_tags
     @coupon_code = CouponCode.new(code) if code
+    @once = once
   end
 
   def run(cart)
     return if @coupon_code && @coupon_code.disqualifies?(cart)
     return if @spend_threshold.nil? || @spend_threshold.zero?
-
     total_cart_price = Decimal.new(0)
 
     eligible_items = Input.cart.line_items.select do |line_item|
       # if eligible, put the line_item in the array and add its price to total_cart_price.
+      # replace with CategorySelector
       if @discount_tags.empty? || @discount_tags.any?{ |tag| product.tags.include?(tag) }
-        # total_cart_price += Integer(line_item.line_price.cents.to_s)
-        puts "line_item.line_price.cents #{line_item.line_price.cents} #{line_item.line_price.cents.class.methods}"
         total_cart_price += line_item.line_price.cents
       end
     end
+    
+    puts "eligible_items #{eligible_items}"
+    return if eligible_items.empty? || total_cart_price < @spend_threshold
 
-    # total_discount is the amount * the number of times over the spend_threshold the cart is.
-    # if total cart price of elligible items is $140 and we say 'spend $50 get $10'
-    # 140/50 rounded down gives us 2. total_discount is 2 * @discount_amount = 2 * $10 = $20 off.
-    total_discount = (total_cart_price/@spend_threshold).floor * @discount_amount
-    # to distribute a flat rate one time total discount amount just set this to @discount_amount
-
-    # Distribute the total discount across the products propotional to their price
-    remainder = Decimal.new(0)
-    eligible_items.each do |line_item|
-      price = line_item.line_price.cents
-      proportion =  price / total_cart_price
-      # multiply total_discount by proportion for this item. 
-      # add remainder - it will initially be 0. 
-      discount_float = (total_discount * proportion) + remainder
-      # round to nearest.
-      discount = discount_float.round
-      # get remainder to pass to next
-      remainder =  discount_float - discount
-      line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: @message) unless discount == 0
+    case @discount.class.to_s
+    when 'PercentageDiscount'
+      puts "inside of case percentage discount"
+      eligible_items.each do |line_item|
+        puts "applying discount to line_item"
+        @discount.apply(line_item)
+      end
+    when 'SetFlatAmountDiscount'
+      puts "inside of SetFlatAmountDiscount"
+      if @once
+        puts "inside of SetFlatAmountDiscount once"
+        # buy $50 get $10 back, but it does not compound. just distribute over items once.
+        total_discount = Decimal.new(@discount.amount.cents)
+      else
+        puts "inside of SetFlatAmountDiscount compounding"
+        # Distribute the total discount across the products propotional to their price
+        # calculate total_discount based on the cart price and how much it exceeds the threshold.
+        total_discount = (total_cart_price/@spend_threshold).floor * Decimal.new(@discount.amount.cents)
+      end
+      remainder = Decimal.new(0)
+      eligible_items.each do |line_item|
+        price = line_item.line_price.cents
+        # money / decimal probably coverts proportion to money
+        proportion =  Decimal.new(price / total_cart_price)
+        # multiply total_discount by proportion for this item. 
+        # add remainder - it will initially be 0.
+        discount_float = (total_discount * proportion) + remainder
+        # round to nearest.
+        discount = discount_float.round
+        # get remainder to pass to next
+        remainder =  discount_float - discount
+        line_item.change_line_price(line_item.line_price - Money.new(cents: discount), message: @message) unless discount == 0
+      end
+    else
+      return
     end
   end
 end
-# Working.
-
-# Usage:
-# 
-# Ex: Spend $50 get $10 
-
-# # Inputs:
-# # Because it makes the math cleaner, we use cents instead of a Money object in this campaign type.
-# # SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
-# SPEND_THRESHOLD = 5000
-# # DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
-# DISCOUNT_AMOUNT = 1000
-# # MESSAGE: Message to display in checkout.
-# MESSAGE = 'Spend $50 and get $10 off!'
-
-# CAMPAIGNS << SPENDXSAVECampaign.new(
-#   SPEND_THRESHOLD,
-#   DISCOUNT_AMOUNT,
-#   MESSAGE
-# )
 
 # End of spend_x_save.rb 
 
@@ -660,20 +662,20 @@ MESSAGE = 'Discount!'
 # # Featured hats 10% off! x
 # # Select all hats that are ALSO tagged as 'featured'
 
-TAG_OPTIONS_A = ['Hat']
-TAG_OPTIONS_B = ['Featured']
-PERCENT = 10
-MESSAGE = 'Featured hats 10% off!'
-COUPON_CODE = 'SUMMER'
+# TAG_OPTIONS_A = ['Hat']
+# TAG_OPTIONS_B = ['Featured']
+# PERCENT = 10
+# MESSAGE = 'Featured hats 10% off!'
+# COUPON_CODE = 'SUMMER'
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAG_OPTIONS_A),
-    CategorySelector.new(TAG_OPTIONS_B)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+# CAMPAIGNS << CategoryCampaign.new(
+#   [
+#     CategorySelector.new(TAG_OPTIONS_A),
+#     CategorySelector.new(TAG_OPTIONS_B)
+#   ],
+#   PercentageDiscount.new(PERCENT, MESSAGE),
+#   COUPON_CODE
+# )
 
 ###########################################
 
@@ -728,17 +730,17 @@ CAMPAIGNS << CategoryCampaign.new(
 # Inputs:
 # Because it makes the math cleaner, we use cents instead of a Money object in this campaign type.
 # SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
-SPEND_THRESHOLD = 5000
-# DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
-DISCOUNT_AMOUNT = 1000
-# MESSAGE: Message to display in checkout.
-MESSAGE = 'Spend $50 and get $10 off!'
+# SPEND_THRESHOLD = 5000
+# # DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
+# DISCOUNT_AMOUNT = 1000
+# # MESSAGE: Message to display in checkout.
+# MESSAGE = 'Spend $50 and get $10 off!'
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT_AMOUNT,
-  MESSAGE
-)
+# CAMPAIGNS << SPENDXSAVECampaign.new(
+#   SPEND_THRESHOLD,
+#   DISCOUNT_AMOUNT,
+#   MESSAGE
+# )
 
 # add functionality for both flat rate and percent off for qualifying orders.
 
@@ -756,6 +758,31 @@ CAMPAIGNS << SPENDXSAVECampaign.new(
 #   TAGS,
 #   COUPON_CODE
 # )
+SPEND_THRESHOLD = 5000
+# DISCOUNT = PercentageDiscount.new(25, '25% off!')
+# MESSAGE = '25% off!'
+# Once does not get used here because it would be weird to compound a %.
+
+# Set a flat amount once if over threshold
+# DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'Buy over $50 and get $10 back!')
+# MESSAGE = 'Buy over $50 and get $10 back'
+# ONCE = TRUE
+
+# Set a flat amount to get back EVERY TIME you spend the threshold.
+DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'For every $50 you spend, get $10 back!')
+MESSAGE = 'For every $50 you spend, get $10 back.'
+COUPON_CODE = 'SUMMER'
+TAGS = []
+ONCE = false
+
+CAMPAIGNS << SPENDXSAVECampaign.new(
+  SPEND_THRESHOLD,
+  DISCOUNT,
+  MESSAGE,
+  TAGS,
+  COUPON_CODE,
+  ONCE
+)
 
 
 

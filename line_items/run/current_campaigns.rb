@@ -128,20 +128,20 @@ MESSAGE = 'Discount!'
 # # Featured hats 10% off! x
 # # Select all hats that are ALSO tagged as 'featured'
 
-TAG_OPTIONS_A = ['Hat']
-TAG_OPTIONS_B = ['Featured']
-PERCENT = 10
-MESSAGE = 'Featured hats 10% off!'
-COUPON_CODE = 'SUMMER'
+# TAG_OPTIONS_A = ['Hat']
+# TAG_OPTIONS_B = ['Featured']
+# PERCENT = 10
+# MESSAGE = 'Featured hats 10% off!'
+# COUPON_CODE = 'SUMMER'
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAG_OPTIONS_A),
-    CategorySelector.new(TAG_OPTIONS_B)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+# CAMPAIGNS << CategoryCampaign.new(
+#   [
+#     CategorySelector.new(TAG_OPTIONS_A),
+#     CategorySelector.new(TAG_OPTIONS_B)
+#   ],
+#   PercentageDiscount.new(PERCENT, MESSAGE),
+#   COUPON_CODE
+# )
 
 ###########################################
 
@@ -196,17 +196,17 @@ CAMPAIGNS << CategoryCampaign.new(
 # Inputs:
 # Because it makes the math cleaner, we use cents instead of a Money object in this campaign type.
 # SPEND_THRESHOLD: number of cents needed in cart to trigger discount. 5000 = $50.
-SPEND_THRESHOLD = 5000
-# DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
-DISCOUNT_AMOUNT = 1000
-# MESSAGE: Message to display in checkout.
-MESSAGE = 'Spend $50 and get $10 off!'
+# SPEND_THRESHOLD = 5000
+# # DISCOUNT_AMOUNT: How much to subtract from cart total when discount triggered in cents. 
+# DISCOUNT_AMOUNT = 1000
+# # MESSAGE: Message to display in checkout.
+# MESSAGE = 'Spend $50 and get $10 off!'
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT_AMOUNT,
-  MESSAGE
-)
+# CAMPAIGNS << SPENDXSAVECampaign.new(
+#   SPEND_THRESHOLD,
+#   DISCOUNT_AMOUNT,
+#   MESSAGE
+# )
 
 # add functionality for both flat rate and percent off for qualifying orders.
 
@@ -224,6 +224,31 @@ CAMPAIGNS << SPENDXSAVECampaign.new(
 #   TAGS,
 #   COUPON_CODE
 # )
+SPEND_THRESHOLD = 5000
+# DISCOUNT = PercentageDiscount.new(25, '25% off!')
+# MESSAGE = '25% off!'
+# Once does not get used here because it would be weird to compound a %.
+
+# Set a flat amount once if over threshold
+# DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'Buy over $50 and get $10 back!')
+# MESSAGE = 'Buy over $50 and get $10 back'
+# ONCE = TRUE
+
+# Set a flat amount to get back EVERY TIME you spend the threshold.
+DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'For every $50 you spend, get $10 back!')
+MESSAGE = 'For every $50 you spend, get $10 back.'
+COUPON_CODE = 'SUMMER'
+TAGS = []
+ONCE = false
+
+CAMPAIGNS << SPENDXSAVECampaign.new(
+  SPEND_THRESHOLD,
+  DISCOUNT,
+  MESSAGE,
+  TAGS,
+  COUPON_CODE,
+  ONCE
+)
 
 
 
