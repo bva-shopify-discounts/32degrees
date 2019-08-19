@@ -65,7 +65,7 @@ MESSAGE = 'Discount!'
 # GREATER_OR_LOWER_THAN = :less_than
 # # You can also separate out items with prices greater than X by uncommenting this:
 # # GREATER_OR_LOWER_THAN = :greater_than
-# CATEGORY_PRICE = Money.new(cents: 20_00)
+# CATEGORY_PRICE = Money.new(2000)
 # PERCENT = 50
 # MESSAGE = "50% off Outerwear or Accessories under $20!"
 
@@ -86,7 +86,7 @@ MESSAGE = 'Discount!'
 # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
 
 # TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(cents: 7_50)
+# FLAT_AMOUNT = Money.new(7_50)
 # MESSAGE = 'Flash Sale!'
 
 # CAMPAIGNS << CategoryCampaign.new(
@@ -103,12 +103,8 @@ MESSAGE = 'Discount!'
 
 # Add a required coupon code to the flash sale above.
 
-# Item1 9.99
-# Item2 11.99
-# if I buy both then $7.50 each for both item 1 and 2
-
 # TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(cents: 3_99)
+# FLAT_AMOUNT = Money.new(399)
 # MESSAGE = 'Summer Flash sale!'
 # COUPON_CODE = 'SUMMER'
 
@@ -230,12 +226,12 @@ SPEND_THRESHOLD = 5000
 # Once does not get used here because it would be weird to compound a %.
 
 # Set a flat amount once if over threshold
-# DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'Buy over $50 and get $10 back!')
+# DISCOUNT = SetFlatAmountDiscount.new(Money.new(10_00), 'Buy over $50 and get $10 back!')
 # MESSAGE = 'Buy over $50 and get $10 back'
 # ONCE = TRUE
 
 # Set a flat amount to get back EVERY TIME you spend the threshold.
-DISCOUNT = SetFlatAmountDiscount.new(Money.new(cents: 10_00), 'For every $50 you spend, get $10 back!')
+DISCOUNT = SetFlatAmountDiscount.new(1000, 'For every $50 you spend, get $10 back!')
 MESSAGE = 'For every $50 you spend, get $10 back.'
 COUPON_CODE = 'SUMMER'
 TAGS = []
@@ -258,20 +254,20 @@ CAMPAIGNS << SPENDXSAVECampaign.new(
 
 # # Tag products for tiered discount campaign. Optional. 
 # # Without tags, any item triggers the discount when bought in enough quantity.
-# TAGS = ['BUYXQTY']
+TAGS = ['BUYXQTY']
 # COUPON_CODE = 'SUMMER'
 
-# # # quantity => discount type with price and message.
-# # # Use flat rate and or percent discount for any tier with any message.
-# # # List tiers in descending order by quantity. Highest quantity tier at the top.
+# # quantity => discount type with price and message.
+# # Use flat rate and or percent discount for any tier with any message.
+# # List tiers in descending order by quantity. Highest quantity tier at the top.
 
-# # Flat Rate example: 
-# DISCOUNTS_BY_QUANTITY = {
-#   40 => SetFlatAmountDiscount.new(Money.new(cents: 1_00), 'Buy 40 for $1!'),
-#   30 => SetFlatAmountDiscount.new(Money.new(cents: 2_00), 'Buy 30 for $2!'),
-#   20 => SetFlatAmountDiscount.new(Money.new(cents: 3_00), 'Buy 20 for $3!'),
-#   10 => SetFlatAmountDiscount.new(Money.new(cents: 4_00), 'Buy 10 for $4!'),
-# }
+# Flat Rate example: 
+DISCOUNTS_BY_QUANTITY = {
+  40 => SetFlatAmountDiscount.new(100, 'Buy 40 for $1!'),
+  30 => SetFlatAmountDiscount.new(200, 'Buy 30 for $2!'),
+  20 => SetFlatAmountDiscount.new(300, 'Buy 20 for $3!'),
+  10 => SetFlatAmountDiscount.new(400, 'Buy 10 for $4!'),
+}
 
 # A and B are $10 each, buy them together they are $7.50
 
@@ -281,12 +277,12 @@ CAMPAIGNS << SPENDXSAVECampaign.new(
 #   10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
 # }
 
-# CAMPAIGNS << QuantityTierCampaign.new(
-#   DISCOUNTS_BY_QUANTITY,
-#   [
-#     CategorySelector.new(TAGS),
-#   ],
-# )
+CAMPAIGNS << QuantityTierCampaign.new(
+  DISCOUNTS_BY_QUANTITY,
+  [
+    CategorySelector.new(TAGS),
+  ],
+)
 
 
 

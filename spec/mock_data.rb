@@ -1,4 +1,7 @@
 require 'money'
+require 'pry'
+$ENV = {}
+$ENV['TEST_ENV'] = 'true'
 
 class Product
   attr_accessor :tags
@@ -29,9 +32,10 @@ class LineItem
 end
 
 class Cart
-  attr_accessor :line_items
-  def initialize(line_items = [])
+  attr_accessor :line_items, :discount_code
+  def initialize(line_items = [], discount_code = nil)
     @line_items = line_items
+    @discount_code = discount_code
   end
 end
 

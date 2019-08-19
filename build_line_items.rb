@@ -36,6 +36,9 @@ File.open(OUTPUT_FILE_PATH,'a') do |output_file|
       puts "Loading: #{file}"
       text = File.open(path + file, 'r').read
       text.each_line do |line|
+        # do not include commented lines. character limit in shopify script editor. 
+        # you will hit it surprisingly quickly without doing this. 
+        next if line[0] == '#'
         # chomp + newline to standardize newlines and in case End Of File has no newline
         output_file << line.chomp + "\n"
       end

@@ -10,7 +10,12 @@ class SetFlatAmountDiscount
   # amount: flat amount to set line item price to as class Money.
   # message: display with line item.
   def initialize(amount, message)
-    @amount = amount
+    if $ENV && $ENV['TEST_ENV']
+      # tests have to use an older Money gem because the shopify scripts one isn't documented.
+      @amount = Money.new(amount)
+    else
+      @amount = Money.new(cents: amount)
+    end
     @message = message
   end
 
