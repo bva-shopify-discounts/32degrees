@@ -1,6 +1,6 @@
 # _Master Shopify Discount Scripts_
 
-#### _A Ruby Project to Generate Shopify Discounts for the Script Editor_
+#### _A Ruby Project to Generate Discounts for the Shopify Script Editor_
 
 ## Description
 
@@ -562,7 +562,13 @@ CAMPAIGNS << CategoryCampaign.new(
 
 ## Shipping Discount Campaign Templates
 
-As stated above, there is currently only one type of shipping campaign. These are the available customizations that can be changed directly in the `shipping_script.rb` file.
+There is currently only a need for one type of shipping campaign, so there is only one file to edit and no build command to run for the shipping discounts. 
+
+The customer can get a percent off certain shipping methods if their order is over a certain price total. 
+
+These are the available customizations that can be changed directly in the `shipping_script.rb` file and then copied and pasted into the Shopify Script Editor under the Shipping tab.
+
+#### Example: Get 25% off on orders over $32 if they ship with Priority Mail.
 
 ```
 SHIPPING_RATES_TO_DISCOUNT = ['Priority Mail']
@@ -571,33 +577,22 @@ DISCOUNT_SHIPPING_PERCENT = 25
 DISCOUNT_SHIPPING_MESSAGE = "25% off for orders over $32!"
 ```
 
-#### SHIPPING_RATES_TO_DISCOUNT
+* `SHIPPING_RATES_TO_DISCOUNT = ['Priority Mail', 'Standard']`
 
 Add new shipping rates to discount by including their name in the SHIPPING_RATES_TO_DISCOUNT list. For example:
-
-`SHIPPING_RATES_TO_DISCOUNT = ['Priority Mail', 'Standard']`
-
 Note: The name must exactly match what is seen in checkout.
 
-#### MIN_CART_TOTAL
+* `MIN_CART_TOTAL = 3200`
 
-The total cost of the customer's cart must be greater than this number to qualify for the shipping discount. It is measured in cents. For example, to make it a $50 minimum, we would edit the line to say: 
+The total cost of the customer's cart must be greater than this number to qualify for the shipping discount. It is measured in cents. For example, to make it a $50 minimum, we would edit the line to say: `MIN_CART_TOTAL = 5000`
 
-`MIN_CART_TOTAL = Money.new(cents: 50_00)`
-
-Note: The underscore is just a visual convenience for the decimal point. `50_00` is the same as `5000`.
-
-#### DISCOUNT_SHIPPING_PERCENT
+* `DISCOUNT_SHIPPING_PERCENT = 100`
 
 This defines how much each shipping rate is discounted. For example, to make shipping free, we would use a 100% discount.
 
-`DISCOUNT_SHIPPING_PERCENT = 100`
+* `DISCOUNT_SHIPPING_MESSAGE = 'Free Priority Mail Shipping!'`
 
-#### DISCOUNT_SHIPPING_MESSAGE
-
-This is the message to display in checkout if the user qualifies. For example: 
-
-`DISCOUNT_SHIPPING_MESSAGE = 'Free Priority Mail Shipping!'`
+This is the message to display in checkout if the user qualifies. 
 
 After you have finished customizing the file, go into the Script Editor in the Shopify Admin and click on the Shipping tab instead of Line Items. Create a new script and copy the entire `shipping_script.rb` file that you have modified into the editor. Here you can test and publish your script.
 
@@ -610,11 +605,11 @@ After you have finished customizing the file, go into the Script Editor in the S
 
 ## Known Issues
 
-Still writing some specs, and would like to do some cleanup for Rubocop standards. But that will have to wait until there are more available hours.
+Would like to expand test coverage and do some updates for Rubocop standards. But that will have to wait until there are more available hours.
 
 Otherwise, be aware of the following:
 
-1. "Discount code requirements not met: Empty Cart"
+1. `Discount code requirements not met: Empty Cart`
 
 This error will sometimes show up on line 1 of the Script Editor when you are editing your script. You can disregard it, this is a Shopify bug. Reload the page, re-paste in your code, and it will go away.
 
