@@ -9,6 +9,9 @@
 CAMPAIGNS = []
 TAGS = []
 MESSAGE = 'Discount!'
+
+###########################################
+# ADD CAMPAIGNS HERE
 ###########################################
 
 
@@ -62,10 +65,10 @@ MESSAGE = 'Discount!'
 # Apply 50% discount
 
 # TAGS = ['OUTERWEAR', 'ACCESSORIES']
-# GREATER_OR_LOWER_THAN = :less_than
+# GREATER_OR_LESS_THAN = :less_than
 # # You can also separate out items with prices greater than X by uncommenting this:
-# # GREATER_OR_LOWER_THAN = :greater_than
-# CATEGORY_PRICE = Money.new(2000)
+# # GREATER_OR_LESS_THAN = :greater_than
+# CATEGORY_PRICE = 2000
 # PERCENT = 50
 # MESSAGE = "50% off Outerwear or Accessories under $20!"
 
@@ -73,7 +76,7 @@ MESSAGE = 'Discount!'
 # CAMPAIGNS << CategoryCampaign.new(
 #   [
 #     CategorySelector.new(TAGS),
-#     PriceSelector.new(GREATER_OR_LOWER_THAN, CATEGORY_PRICE)
+#     PriceSelector.new(GREATER_OR_LESS_THAN, CATEGORY_PRICE)
 #   ],
 #   PercentageDiscount.new(PERCENT, MESSAGE)
 # )
@@ -86,7 +89,7 @@ MESSAGE = 'Discount!'
 # Can include multiple tags to look for - ex: ['Flash', 'Clearance']
 
 # TAGS = ['Flash']
-# FLAT_AMOUNT = Money.new(7_50)
+# FLAT_AMOUNT = 750
 # MESSAGE = 'Flash Sale!'
 
 # CAMPAIGNS << CategoryCampaign.new(
@@ -148,19 +151,19 @@ MESSAGE = 'Discount!'
   # set PERCENT = 100
   # because free = 100% discount
 
-# TAGS = ['BOGO']
-# MESSAGE = 'Buy 2 get 1 at 50% off!'
-# PAID_ITEM_COUNT = 2
-# DISCOUNTED_ITEM_COUNT = 1
-# PERCENT = 50
+TAGS = ['BOGO']
+MESSAGE = 'Buy 2 get 1 at 50% off!'
+PAID_ITEM_COUNT = 2
+DISCOUNTED_ITEM_COUNT = 1
+PERCENT = 50
 
-# CAMPAIGNS << BOGOCampaign.new(
-#   [
-#     CategorySelector.new(TAGS)
-#   ],
-#   PercentageDiscount.new(PERCENT, MESSAGE),
-#   BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
-# )
+CAMPAIGNS << BOGOCampaign.new(
+  [
+    CategorySelector.new(TAGS)
+  ],
+  PercentageDiscount.new(PERCENT, MESSAGE),
+  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
+)
 
 # Same discount as above but unlocked with a coupon code.
 
