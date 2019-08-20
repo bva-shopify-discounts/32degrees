@@ -34,6 +34,8 @@ Currently, there is only one type of shipping discount, so the `shipping_script.
 
 Copy and paste as many of these into your `line_items/run/current_campaigns.rb` file where it says 'ADD CAMPAIGNS HERE'.
 
+***
+
 ### Entire Site Campaign
 
 ***
