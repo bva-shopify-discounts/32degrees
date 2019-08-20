@@ -32,7 +32,7 @@ Currently, there is only one type of shipping discount, so the `shipping_script.
 
 ## Line Item Discount Campaign Templates
 
-Copy and paste as many of these into your `line_items/run/current_campaigns.rb` file where it says 'ADD CAMPAIGNS HERE'.
+Copy and paste as many of these as you like into your `line_items/run/current_campaigns.rb` file where it says 'ADD CAMPAIGNS HERE'.
 
 ***
 
