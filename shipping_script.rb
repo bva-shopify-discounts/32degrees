@@ -6,21 +6,21 @@
 #
 # Input:
 # * SHIPPING_RATES_TO_DISCOUNT: List of shipping methods to make discounted. Matched by exact name.
-# * MIN_CART_TOTAL: Minimum cart total to trigger discount
+# * MIN_CART_TOTAL: Minimum cart total to trigger discount in cents.
 # * DISCOUNT_SHIPPING_PERCENT: Percent amount to discount (integer) Free = 100 for a 100% discount
 # * DISCOUNT_SHIPPING_MESSAGE: Message to print on discounted shipping method
 
 # To deactivate: Set SHIPPING_RATES_TO_DISCOUNT = []
 
 SHIPPING_RATES_TO_DISCOUNT = ['Priority Mail']
-MIN_CART_TOTAL = Money.new(cents: 32_00)
+MIN_CART_TOTAL = 3200
 DISCOUNT_SHIPPING_PERCENT = 25
 DISCOUNT_SHIPPING_MESSAGE = "25% off for orders over $32!"
 
 class DiscountShippingOverMinimumCartTotalCampaign
 
   def initialize(min_cart_total, discount_percent, discount_shipping_message, names_of_rates_to_discount)
-    @min_cart_total = min_cart_total
+    @min_cart_total = Money.new(cents: min_cart_total)
     @discount_percent = Float(discount_percent) / 100.00
     @discount_shipping_message = discount_shipping_message
     @names_of_rates_to_discount = names_of_rates_to_discount
