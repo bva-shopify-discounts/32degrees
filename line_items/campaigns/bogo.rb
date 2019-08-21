@@ -1,4 +1,4 @@
-# BOGO FREE or X% OFF 
+# BOGO Campaign
 # Tagged products are discounted as buy a certain quantity and get X% off 
 # To buy one get one free, you would say buy quantity = 1 and get X = 100% off.
 
@@ -30,23 +30,12 @@ class BOGOCampaign
 end
 
 # Usage:
-# 
-# BOGO
-# Ex: Buy two products tagged with 'BOGO' and the third is 50% off.
-# To get Buy X get X free:
-  # set PERCENT = 100
-  # because free = 100% discount
+# Buy two products tagged with 'BOGO' and the third is 50% off.
 
-# TAGS = ['BOGO']
-# MESSAGE = 'Buy 2 get 1 at 50% off!'
-# PAID_ITEM_COUNT = 2
-# DISCOUNTED_ITEM_COUNT = 1
-# PERCENT = 50
+# BOGO Campaign takes 4 inputs.
+# 1) An array [] of conditions to define your category (a CategorySelector for tags, a PriceSelector to restrict by price etc.)
+# 2) A discount to apply (flat rate, percentage, etc.)
+# 3) A Bogo Partitions, which itself takes 2 inputs: paid_item_count, discounted_item_count. 
+#    In this example, these would be 2, 1 (buy 2, get 1) BOGOPartitioner.new(2, 1)
+# 4) Optional coupon code to require.
 
-# BOGOCampaign.new(
-#   [
-#     CategorySelector.new(TAGS)
-#   ],
-#   PercentageDiscount.new(PERCENT, MESSAGE),
-#   BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT)
-# )

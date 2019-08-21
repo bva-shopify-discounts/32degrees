@@ -1,5 +1,5 @@
-# ENTIRE SITE X% OFF 
-# Pass a discount into this campaign and it will be applied to each item in the cart
+# Entire Site Campaign
+# Pass a discount into this campaign and it will be applied to each item in the cart.
 
 class EntireSiteCampaign
 
@@ -19,13 +19,10 @@ class EntireSiteCampaign
 end
 
 # Usage:
-# 
-# (1, 3)
 # Entire site 25% off for summer discount event.
 
-# PERCENT = 25
-# MESSAGE = 'Summer discount event!'
+# Entire Site Campaign takes 1 input:
+# 1) A discount to apply (flat rate, percentage, etc.)
 
-# EntireSiteCampaign.new(
-#   PercentageDiscount.new(PERCENT, MESSAGE)
-# )
+# Notes: 
+# If a coupon code is needed to unlock the discount, use a Category Campaign with no tags.
