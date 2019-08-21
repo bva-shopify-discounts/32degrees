@@ -1,3 +1,4 @@
+
 # _Master Shopify Discount Scripts_
 
 #### _A Ruby Project to Generate Discounts for the Shopify Script Editor_
@@ -27,11 +28,43 @@ This project gives you a few different types of discount 'Campaigns' that you ca
 
 #### Shipping Discounts (Used in the Shipping step)
 
-Currently, there is only one type of shipping discount, so the `shipping_script.rb` file can be edited directly in the top level of the project folder without having to build anything. Customizations explained for both types of script below. 
+Currently, there is only one type of shipping discount, so the `shipping_discount_script.rb` file can be edited directly in the top level of the project folder without having to build anything. Customizations explained for both types of script below. 
 
 ## Line Item Discount Campaign Templates
 
-Copy and paste as many of these as you like into your `line_items/run/current_campaigns.rb` file where it says 'ADD CAMPAIGNS HERE'.
+* Copy and paste any of these into your `line_items/run/current_campaigns.rb` file in the space after it says `ADD CAMPAIGNS HERE`.
+* Each campaign is initialized in a function, which you can name after the discount you're creating. For examples:
+
+```
+def name_of_my_campaign
+
+# Discount settings go here.
+# Then we create the discount campaign and return it.
+
+end
+
+# Then we add the new campaign into the global CAMPAIGNS list. 
+
+CAMPAIGNS << name_of_my_campaign
+```
+
+* To use multiple campaigns, you would add several functions. 
+* Add them to `CAMPAIGNS` in the order you'd like them to run.
+
+```
+def flash_sale_swimwear
+  # Code here
+end
+
+def buy_1_jacket_get_1_free
+  # Code here
+end
+
+# Add both campaigns so that the flash sale is applied first, and then the BOGO.
+CAMPAIGNS << flash_sale_swimwear
+CAMPAIGNS << buy_1_jacket_get_1_free
+
+```
 
 ***
 
@@ -39,22 +72,31 @@ Copy and paste as many of these as you like into your `line_items/run/current_ca
 
 ***
 
-#### Example: Entire site 25% off for summer discount event.
+#### Example: Entire site 25% off for 4th of July.
 
 ```
-PERCENT = 25
-MESSAGE = 'Summer discount event!'
+def july_4_sale
+  PERCENT = 25
+  MESSAGE = '4th of July Sale!'
 
-CAMPAIGNS << EntireSiteCampaign.new(
-  PercentageDiscount.new(PERCENT, MESSAGE)
-)
+  EntireSiteCampaign.new(
+    PercentageDiscount.new(PERCENT, MESSAGE)
+  )
+end
+
+CAMPAIGNS << july_4_sale
 
 ```
 
 Notes: 
 
-* You only need to edit the values stored for `PERCENT` and `MESSAGE`. But copy and paste the whole block of code above into your current_campaigns.rb file, right below where it says ADD CAMPAIGNS HERE. 
-* To use a coupon code to unlock a discount to the entire site, use a Category Campaign with no tags. Described below.
+* You only need to edit the values stored for `PERCENT` and `MESSAGE`. But copy and paste the whole block of code above into your `current_campaigns.rb` file, right below where it says `ADD CAMPAIGNS HERE`. 
+* To use a coupon code to unlock a discount to the entire site, use a Category Campaign with no tags. Described below under Category Campaigns.
+* Don't forget to add your discount to the `CAMPAIGNS` list.
+
+```
+
+```
 
 ***
 
@@ -65,87 +107,107 @@ Notes:
 #### Example: Take 20% off any products tagged as either 'New' OR 'Sale'.
 
 ```
-TAGS = ['Sale', 'New']
-PERCENT = 20
-MESSAGE = "20% off select coffees!"
+def new_or_sale_tags_20_percent_off
+  TAGS = ['Sale', 'New']
+  PERCENT = 20
+  MESSAGE = "20% off select coffees!"
+  COUPON_CODE = nil
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAGS)
+    ],
+    PercentageDiscount.new(PERCENT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << new_or_sale_tags_20_percent_off
 ```
 
 Notes: 
 
-* You can use any number of tags in the `TAGS` list, and the script will discount any items that match ANY of them. For example, `TAGS = ['Jackets', 'Gloves', 'Hats']` will discount any items that fit into one or more of those categories.
+* You can use any number of tags in the `TAGS` list, and the script will discount items that match ANY of them. For example, `TAGS = ['Jackets', 'Gloves', 'Hats']` will discount Jackets, Gloves, and Hats - any items that fit into one or more of those categories.
 
 ***
 
-#### Example: 50% off items tagged with 'OUTERWEAR', that are ALSO under $20. 
+#### Example: Price Selector - 50% off items tagged with 'OUTERWEAR', that are ALSO under $20. 
 
 ```
-TAGS = ['OUTERWEAR']
-GREATER_OR_LESS_THAN = :less_than
-CATEGORY_PRICE = 2000
-PERCENT = 50
-MESSAGE = "50% off Outerwear under $20!"
+def half_off_outerwear_under_20
+  TAGS = ['OUTERWEAR']
+  GREATER_OR_LESS_THAN = :less_than
+  CATEGORY_PRICE = 2000
+  PERCENT = 50
+  MESSAGE = "50% off Outerwear under $20!"
+  COUPON_CODE = nil
 
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS),
-    PriceSelector.new(GREATER_OR_LESS_THAN, CATEGORY_PRICE)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAGS),
+      PriceSelector.new(GREATER_OR_LESS_THAN, CATEGORY_PRICE)
+    ],
+    PercentageDiscount.new(PERCENT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << half_off_outerwear_under_20
 ```
 
-You can also separate out items with prices greater than a certain price by using `:greater_than` instead of `:less_than`
+* You can also separate out items with prices greater than a certain price by using `:greater_than` instead of `:less_than`
 
 ```
-TAGS = ['OUTERWEAR']
-GREATER_OR_LESS_THAN = :greater_than
-CATEGORY_PRICE = 2000
-PERCENT = 50
-MESSAGE = "50% off Outerwear over $20!"
+def half_off_outerwear_over_20
+  TAGS = ['OUTERWEAR']
+  GREATER_OR_LESS_THAN = :greater_than
+  CATEGORY_PRICE = 2000
+  PERCENT = 50
+  MESSAGE = "50% off Outerwear over $20!"
+  COUPON_CODE = nil
 
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS),
-    PriceSelector.new(GREATER_OR_LESS_THAN, CATEGORY_PRICE)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAGS),
+      PriceSelector.new(GREATER_OR_LESS_THAN, CATEGORY_PRICE)
+    ],
+    PercentageDiscount.new(PERCENT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << half_off_outerwear_over_20
 ```
 
 
 Notes: 
 
-* This is an example of a discount with multiple conditions required. Both must be satisfied to qualify. Items must be tagged with Outerwear AND less thatn $20. 
+* This is an example of a discount with multiple conditions required. BOTH must be satisfied to qualify. Items must be tagged with Outerwear AND less thatn $20. 
 * CATEGORY_PRICE is measured in cents. So $20 is equal to 2000. 
 
 ***
 
-#### Example: Flat amount: Flash sale! All products tagged 'Flash' cost exactly $7.50.
+#### Example: Flat amount - Flash sale! All products tagged 'Flash' cost exactly $7.50.
 
 ```
-TAGS = ['Flash']
-FLAT_AMOUNT = 750
-MESSAGE = 'Flash Sale!'
+def flash_sale
+  TAGS = ['Flash']
+  FLAT_AMOUNT = 750
+  MESSAGE = 'Flash Sale!'
+  COUPON_CODE = nil
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS),
-  ],
-  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
-  COUPON_CODE
-)
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAGS),
+    ],
+    SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << flash_sale
 ```
 
 Notes: 
@@ -154,23 +216,84 @@ Notes:
 
 ***
 
+
+
+#### Example: Using Coupon Codes
+
+1. Create a coupon code in the shopify admin. For example: 'SUMMER'. 
+2. Copy and paste one of the discount campaign templates into your `current_campaigns.rb` file like normal.
+3. Add a new line, setting `COUPON_CODE` equal to the code you created in the shopify admin: `COUPON_CODE = 'SUMMER'`. Now this discount script will override the discount created in the admin, but it will only be activated if the customer enters the code. 
+
+***
+
+#### Example: Flat amount: Summer Flash sale! All products tagged 'Flash' cost exactly $7.50 with coupon code 'SUMMER'.
+
+```
+def flash_sale_with_coupon
+  TAGS = ['Flash']
+  FLAT_AMOUNT = 750
+  MESSAGE = 'Flash Sale!'
+  # Changing only the following line to require a coupon code of 'SUMMER'
+  COUPON_CODE = 'SUMMER'
+
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAGS),
+    ],
+    SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << flash_sale_with_coupon
+
+```
+
+Notes: 
+
+* Any discount campaign type can use coupon codes (Except for `EntireSiteCampaign` because that functionality is covered by `CategoryCampaign` if you use no tags.
+* `COUPON_CODE` is an optional setting to include on the campaign. If the variable `COUPON_CODE` is set, then the code will be required to activate the discount campaign.
+* The coupon code must be in quotes.
+* The coupon code must be created in advance in the Shopify Admin under Discounts. 
+* This script will override the discount code behavior created in the admin, so your settings there won't matter. This allows simpler admin interface discounts to coexist with this discount script.
+
+For example: 
+You create a discount code 'WINTER' in the admin that gives users 25% off the whole site. 
+Then you create a script discount here - let's say a category campaign - winter coats 50% off. 
+You also set this discount to look for the coupon code 'WINTER'. 
+When the customer enters 'WINTER', if they have a winter coat in their cart, it will be 50% off. 
+If they don't qualify (not buying a winter coat), then the site wide 25% off discount still does not get applied. 
+If the site wide discount created in the admin is assigned a different coupon code, then both can work alongside each other.
+
+***
+
 #### Example: Featured hats 10% off! All products tagged 'Hat' that are also tagged 'Featured' qualify.
 
 ```
-TAG_OPTIONS_A = ['Hat']
-TAG_OPTIONS_B = ['Featured']
-PERCENT = 10
-MESSAGE = 'Featured hats 10% off!'
+def ten_percent_off_featured_hats
+  TAG_OPTIONS_A = ['Hat']
+  TAG_OPTIONS_B = ['Featured']
+  PERCENT = 10
+  MESSAGE = 'Featured hats 10% off!'
+  COUPON_CODE = nil
 
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAG_OPTIONS_A),
-    CategorySelector.new(TAG_OPTIONS_B)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
+  CategoryCampaign.new(
+    [
+      CategorySelector.new(TAG_OPTIONS_A),
+      CategorySelector.new(TAG_OPTIONS_B)
+    ],
+    PercentageDiscount.new(PERCENT, MESSAGE),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << ten_percent_off_featured_hats
 ```
+
+Notes: 
+
+*  This discount requires both tags to be true instead of either to qualify. The item must be not only tagged as a 'hat', but tagged as a 'featured' hat.
+
 ***
 
 ### BOGO Campaign
@@ -180,20 +303,25 @@ CAMPAIGNS << CategoryCampaign.new(
 #### Example: Buy two products tagged with 'BOGO' and the third is 50% off.
 
 ```
-TAGS = ['BOGO']
-MESSAGE = 'Buy 2 get 1 at 50% off!'
-PAID_ITEM_COUNT = 2
-DISCOUNTED_ITEM_COUNT = 1
-PERCENT = 50
+def buy_2_get_1
+  TAGS = ['BOGO']
+  MESSAGE = 'Buy 2 get 1 at 50% off!'
+  PAID_ITEM_COUNT = 2
+  DISCOUNTED_ITEM_COUNT = 1
+  PERCENT = 50
+  COUPON_CODE = nil
 
-CAMPAIGNS << BOGOCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
-  COUPON_CODE
-)
+  BOGOCampaign.new(
+    [
+      CategorySelector.new(TAGS)
+    ],
+    PercentageDiscount.new(PERCENT, MESSAGE),
+    BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << buy_2_get_1
 ```
 
 ***
@@ -205,87 +333,122 @@ CAMPAIGNS << BOGOCampaign.new(
 #### Example: Get a flat amount once if over threshold
 
 ```
-SPEND_THRESHOLD = 5000
-DISCOUNT = SetFlatAmountDiscount.new(1000, 'Buy over $50 and get $10 back!')
-MESSAGE = 'Buy over $50 and get $10 back'
-ONCE = true
+def buy_50_bucks_get_10
+  SPEND_THRESHOLD = 5000
+  FLAT_AMOUNT = 1000
+  MESSAGE = 'Buy over $50 and get $10 back!'
+  TAGS = []
+  COUPON_CODE = nil
+  ONCE = true
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
+  DISCOUNT = SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
+  SPENDXSAVECampaign.new(
+    SPEND_THRESHOLD,
+    DISCOUNT,
+    TAGS,
+    COUPON_CODE,
+    ONCE
+  )
+end
+
+CAMPAIGNS << buy_50_bucks_get_10
 ```
+
+Notes: 
+
+* In this discount we are not using tags or a coupon code but we are setting `ONCE` to true. This means we don't get $10 for EVERY $50 we spend, we only get it ONCE. The next example sets it to false.
+* We did not include a value for `TAGS` here because we want the discount site wide. There is an example further down with tags.
 
 ***
 
 #### Example: Get a flat amount back EVERY TIME you spend the threshold.
 
 ```
-SPEND_THRESHOLD = 5000
-DISCOUNT = SetFlatAmountDiscount.new(1000, 'For every $50 you spend, get $10 back!')
-MESSAGE = 'For every $50 you spend, get $10 back.'
-ONCE = false
+def every_50_bucks_get_10
+  SPEND_THRESHOLD = 5000
+  FLAT_AMOUNT = 1000
+  MESSAGE = 'Spend $50 and get $10 back!'
+  TAGS = []
+  COUPON_CODE = nil
+  ONCE = false
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
+  DISCOUNT = SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
+  SPENDXSAVECampaign.new(
+    SPEND_THRESHOLD,
+    DISCOUNT,
+    TAGS,
+    COUPON_CODE,
+    ONCE
+  )
+end
+
+CAMPAIGNS << every_50_bucks_get_10
 ```
+
+Notes:
+
+* This example sets ONCE to false, so that the discount amount gets $10 larger with every $50 spent.
 
 ***
 
-#### Example: Spend $50 and get 25% off.
+#### Example: Percent - Spend $50 and get 25% off.
 
 ```
-SPEND_THRESHOLD = 5000
-DISCOUNT = PercentageDiscount.new(25, '25% off!')
-MESSAGE = '25% off for $50!'
+def spend_50_get_25_percent_off
+  SPEND_THRESHOLD = 5000
+  PERCENT = 25
+  MESSAGE = '25% off for $50!'
+  TAGS = []
+  COUPON_CODE = nil
+  ONCE = nil
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
+  DISCOUNT = PercentageDiscount.new(PERCENT, MESSAGE)
+  SPENDXSAVECampaign.new(
+    SPEND_THRESHOLD,
+    DISCOUNT,
+    TAGS,
+    COUPON_CODE,
+    ONCE
+  )
+end
+
+CAMPAIGNS << spend_50_get_25_percent_off
 ```
 
-Notes: 
+Notes:
 
-* We did not include a value for `TAGS` here so it would be site wide. See the next example if you want to restrict this discount to a particular tagged product.
+* Percent discounts are always only applied only once since that is more standard.
 
-#### Example: For every $20 you spend on sweaters, you get $5 back.
+***
+
+#### Example: Restrict products by tag - For every $20 you spend on sweaters, you get $5 back.
 
 ```
-SPEND_THRESHOLD = 2000
-DISCOUNT = SetFlatAmountDiscount.new(5000, 'For every $20 you spend on sweaters, get $5 back!')
-MESSAGE = 'For every $20 you spend on sweaters, get $5 back!'
-TAGS = ['SWEATER']
+def each_20_on_sweaters_gets_5
+  SPEND_THRESHOLD = 2000
+  FLAT_AMOUNT = 500
+  MESSAGE = 'For every $20 you spend on sweaters, get $5 back!'
+  TAGS = ['SWEATER']
+  COUPON_CODE = nil
+  ONCE = false
 
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
+  DISCOUNT = SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE)
+  SPENDXSAVECampaign.new(
+    SPEND_THRESHOLD,
+    DISCOUNT,
+    TAGS,
+    COUPON_CODE,
+    ONCE
+  )
+end
+
+CAMPAIGNS << each_20_on_sweaters_gets_5
 ```
 
 
 Notes: 
 
 * There are two kinds of flat rate discounts - those applied once, and those applied repeatedly every time the threshold is exceeded. Which of these options is used depends on the ONCE variable.
-* Percent discounts are always only applied only once since that is more standard.
 
 ***
 
@@ -296,21 +459,26 @@ Notes:
 #### Example: The more sweaters you buy, the cheaper they are!
 
 ```
-TAGS = ['SWEATER']
-DISCOUNTS_BY_QUANTITY = {
-  40 => SetFlatAmountDiscount.new(100, 'Buy 40 for $1!'),
-  30 => SetFlatAmountDiscount.new(200, 'Buy 30 for $2!'),
-  20 => SetFlatAmountDiscount.new(300, 'Buy 20 for $3!'),
-  10 => SetFlatAmountDiscount.new(400, 'Buy 10 for $4!'),
-}
+def flat_amount_sweater_quantity
+  TAGS = ['SWEATER']
+  DISCOUNTS_BY_QUANTITY = {
+    40 => SetFlatAmountDiscount.new(100, 'Buy 40 for $1!'),
+    30 => SetFlatAmountDiscount.new(200, 'Buy 30 for $2!'),
+    20 => SetFlatAmountDiscount.new(300, 'Buy 20 for $3!'),
+    10 => SetFlatAmountDiscount.new(400, 'Buy 10 for $4!'),
+  }
+  COUPON_CODE = nil
 
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ],
-  COUPON_CODE
-)
+  QuantityTierCampaign.new(
+    DISCOUNTS_BY_QUANTITY,
+    [
+      CategorySelector.new(TAGS),
+    ],
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << flat_amount_sweater_quantity
 ```
 
 Notes: 
@@ -323,19 +491,24 @@ Notes:
 #### Example: Buy sweaters and save up to 50%!
 
 ```
-TAGS = ['SWEATER']
-DISCOUNTS_BY_QUANTITY = {
-  20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
-  10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
-}
+def percent_off_for_sweater_quantity
+  TAGS = ['SWEATER']
+  DISCOUNTS_BY_QUANTITY = {
+    20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
+    10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
+  }
+  COUPON_CODE = nil
 
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ],
-  COUPON_CODE
-)
+  QuantityTierCampaign.new(
+    DISCOUNTS_BY_QUANTITY,
+    [
+      CategorySelector.new(TAGS),
+    ],
+    COUPON_CODE
+  )
+end
+
+CAMPAIGNS << percent_off_for_sweater_quantity
 ```
 
 Notes: 
@@ -345,229 +518,13 @@ Notes:
 
 ***
 
-
-### Using Coupon Codes
-
-1. Create a coupon code in the shopify admin. For example: 'SUMMER'. 
-2. Copy and paste one of the discount campaign templates into your `current_campaigns.rb` file like normal.
-3. Add a new line, setting `COUPON_CODE` equal to the code you created in the shopify admin: `COUPON_CODE = 'SUMMER'`. Now this discount script will override the discount created in the admin, but it will only be activated if the customer enters the code. 
-
-***
-
-#### Example: Flat amount: Flash sale! All products tagged 'Flash' cost exactly $7.50.
-
-```
-# Copy and pasted campaign template from above
-TAGS = ['Flash']
-FLAT_AMOUNT = 750
-MESSAGE = 'Flash Sale!'
-# Adding only the following line to require a coupon code of 'SUMMER'
-COUPON_CODE = 'SUMMER'
-
-
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS),
-  ],
-  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
-  COUPON_CODE
-)
-```
-
-Notes: 
-
-* Any discount campaigns can use coupon codes (Except for `EntireSiteCampaign` because that function is covered by `CategoryCampaign` as shown in the next example). 
-* COUPON_CODE is an optional setting to include on the campaign. If the variable `COUPON_CODE` is set, then the code will be required to activate the discount campaign.
-* The coupon code must be in quotes
-* The coupon code must be created in advance in the Shopify Admin under Discounts. 
-* If it is used in a discount campaign in this script, this will override the behavior created in the admin. For example: If you create a discount code 'WINTER' in the admin that gives users 25% off the whole site, and then create a script discount that is instead a `QuantityTierCampaign` looking for the coupon code 'WINTER', then when the customer enters the code, the 25% off discount from the admin will not be applied. It will be overriden by the `QuantityTierCampaign` if the customer has bought a large enough quantity. But, if they don't qualify for the script discount `QuantityTierCampaign` then the 25% off discount created in the admin will be applied instead. **This allows the admin interface to coexist with this discount script.**
-
-***
-
-### More Coupon Code Examples for reference
-
-***
-
-#### Example: Enter the code 'SUMMER' to get 10% off on the whole site. 
-
-```
-# No tags means do not restrict the product set by tag.
-TAGS = []
-PERCENT = 10
-MESSAGE = "SUMMER Sale 10% off everything!"
-# Adding coupon code here:
-COUPON_CODE = "SUMMER"
-
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
-```
-
-***
-
-#### Example: Enter the code "FALL" to unlock BOGO on all Jackets.
-
-```
-TAGS = ['Jacket']
-MESSAGE = 'Buy 1 get 1 free!'
-PAID_ITEM_COUNT = 1
-DISCOUNTED_ITEM_COUNT = 1
-PERCENT = 100
-COUPON_CODE = 'FALL'
-
-CAMPAIGNS << BOGOCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  BOGOPartitioner.new(PAID_ITEM_COUNT, DISCOUNTED_ITEM_COUNT),
-  COUPON_CODE
-)
-
-
-```
-
-***
-
-#### Example: (Flat amount with coupon) Enter the code "FLASH" to get all hats for $10.99. 
-
-```
-TAGS = ['Hat']
-FLAT_AMOUNT = 1099
-MESSAGE = 'Hat Flash sale!'
-COUPON_CODE = 'FLASH'
-
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  SetFlatAmountDiscount.new(FLAT_AMOUNT, MESSAGE),
-  COUPON_CODE
-)
-```
-
-***
-
-#### Example: SpendXSave - Enter coupon TEN and every $10 you spend gets you $1 back!
-
-```
-# all products
-TAGS = []
-SPEND_THRESHOLD = 1000
-DISCOUNT = SetFlatAmountDiscount.new(100, 'For every $10 you spend on sweaters, get $1 back!')
-MESSAGE = 'For every $10 you spend on sweaters, get $1 back!'
-COUPON_CODE = 'TEN'
-
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
-```
-
-***
-
-
-#### Example: Enter code 'COZY' and save up to 50% on sweaters!
-
-```
-TAGS = ['SWEATER']
-DISCOUNTS_BY_QUANTITY = {
-  20 => PercentageDiscount.new(50, 'Buy 20, get 50% off!'),
-  10 => PercentageDiscount.new(25, 'Buy 10, get 25% off!')
-}
-COUPON_CODE = 'COZY'
-
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ],
-  COUPON_CODE
-)
-```
-
-***
-
-### Using Multiple Discounts
-
-* Discounts are applied in the order defined by `current_campaigns.rb`
-* Be sure to call `reset_defaults` after each discount, like this: 
-
-```
-
-# Add each block of code copied from the above examples 
-# Campaign 1: 
-TAGS = []
-SPEND_THRESHOLD = 1000
-DISCOUNT = SetFlatAmountDiscount.new(100, 'For every $10 you spend on sweaters, get $1 back!')
-MESSAGE = 'For every $10 you spend on sweaters, get $1 back!'
-COUPON_CODE = 'TEN'
-
-CAMPAIGNS << SPENDXSAVECampaign.new(
-  SPEND_THRESHOLD,
-  DISCOUNT,
-  MESSAGE,
-  TAGS,
-  COUPON_CODE,
-  ONCE
-)
-
-# add this line to reset before the next campaign, since we do not use a coupon code on the others:
-reset_defaults
-
-# Campaign 2:
-TAGS = ['SWEATER']
-DISCOUNTS_BY_QUANTITY = {
-  40 => SetFlatAmountDiscount.new(100, 'Buy 40 for $1!'),
-  30 => SetFlatAmountDiscount.new(200, 'Buy 30 for $2!'),
-  20 => SetFlatAmountDiscount.new(300, 'Buy 20 for $3!'),
-  10 => SetFlatAmountDiscount.new(400, 'Buy 10 for $4!'),
-}
-
-CAMPAIGNS << QuantityTierCampaign.new(
-  DISCOUNTS_BY_QUANTITY,
-  [
-    CategorySelector.new(TAGS),
-  ],
-  COUPON_CODE
-)
-
-# add this line to reset before the next campaign
-reset_defaults
-
-# Campaign 3: 
-TAGS = ['Sale', 'New']
-PERCENT = 20
-MESSAGE = "20% off select coffees!"
-
-CAMPAIGNS << CategoryCampaign.new(
-  [
-    CategorySelector.new(TAGS)
-  ],
-  PercentageDiscount.new(PERCENT, MESSAGE),
-  COUPON_CODE
-)
-```
-
-* This allows us to reuse variable names like `COUPON_CODE` for simplicity when copying and pasting from this document, while only the using the settings we need. For example, if you do not define a coupon code on a discount campaign, then there is no code required to activate the discount. 
-
-***
-
 ## Shipping Discount Campaign Templates
 
 There is currently only a need for one type of shipping campaign, so there is only one file to edit and no build command to run for the shipping discounts. 
 
 The customer can get a percent off certain shipping methods if their order is over a certain price total. 
 
-These are the available customizations that can be changed directly in the `shipping_script.rb` file and then copied and pasted into the Shopify Script Editor under the Shipping tab.
+These are the available customizations that can be changed directly in the `shipping_discount_script.rb` file and then copied and pasted into the Shopify Script Editor under the Shipping tab.
 
 #### Example: Get 25% off on orders over $32 if they ship with Priority Mail.
 
@@ -595,7 +552,7 @@ This defines how much each shipping rate is discounted. For example, to make shi
 
 This is the message to display in checkout if the user qualifies. 
 
-After you have finished customizing the file, go into the Script Editor in the Shopify Admin and click on the Shipping tab instead of Line Items. Create a new script and copy the entire `shipping_script.rb` file that you have modified into the editor. Here you can test and publish your script.
+After you have finished customizing the file, go into the Script Editor in the Shopify Admin and click on the Shipping tab instead of Line Items. Create a new script and copy the entire `shipping_discount_script.rb` file that you have modified into the editor. Here you can test and publish your script.
 
 ## Specs
 
