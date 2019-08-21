@@ -9,26 +9,25 @@ This project gives you a few different types of discount 'Campaigns' that you ca
 ## Setup/Installation Requirements
 
 1. Make sure you have Ruby installed on your machine. If you are on a Mac, this comes automatically installed.
-2. Make sure you have a commandline program, such as the Terminal installed that can use ruby. 
-3. Using the commandline, navigate into the top level of this project folder. 
+2. Make sure you have a command line program, such as the Terminal installed that can use ruby.
 
 ## Using This Project
 
 #### Line Items Discounts (Used in the Cart)
 
-1. Using the commandline, navigate into the top level of this project folder. 
-2. Open the file `line_items/run/current_campaigns.rb` in a standard text editor such as Sublime Text, Atom or Notepad++.
+1. Using the command line, navigate into the top level of this project folder. 
+2. Open the file `line_items/run/current_campaigns.rb` in a text editor such as Sublime Text, Atom or Notepad++.
 4. Copy and paste the discount campaign template you would like to use from this readme into the file, customizing any values such as the message to display.
-5. Save the current_campaigns.rb file. 
-6. From the commandline, run `ruby build_line_items.rb`
-7. This generates you a file called `line_items_discount_script.rb` in the top level of the project.
+5. Save the `current_campaigns.rb` file in its current folder. 
+6. From the command line, run `ruby build_line_items.rb`
+7. This generates a file called `line_items_discount_script.rb` in the top level of the project.
 8. Go to the Shopify Admin, and click on Apps. Download the Script Editor if you haven't already and then click it.
-9. Click the Line Items tab, and click 'Create New Script'. Select Blank Template. 
+9. Click the `Line Items` tab, and click 'Create New Script'. Select Blank Template. 
 10. Copy and paste the entire contents of your generated `line_items_discount_script.rb` file into the new script, replacing any existing lines. Now you can preview, test and publish the script to your site.
 
 #### Shipping Discounts (Used in the Shipping step)
 
-Currently, there is only one type of shipping discount, so the `shipping_script.rb` file can be edited directly without having to build anything. Customizations explained below. 
+Currently, there is only one type of shipping discount, so the `shipping_script.rb` file can be edited directly in the top level of the project folder without having to build anything. Customizations explained for both types of script below. 
 
 ## Line Item Discount Campaign Templates
 
