@@ -32,7 +32,7 @@ File.open(OUTPUT_FILE_PATH,'a') do |output_file|
 
     # open each file in current directory and write it to the master build script
     Dir.foreach(path) do |file|
-      next if file == '.' || file == '..'
+      next if file == '.' || file == '..' || file == '.DS_Store'
       puts "Loading: #{file}"
       text = File.open(path + file, 'r').read
       text.each_line do |line|
