@@ -21,14 +21,27 @@ class QuantityTierCampaign
       end
     end
 
+    total_quantity = items_in_discount_category.inject(0){|sum, item| sum + item.quantity }
+
+    # @discounts_by_quantity is a key value pair of quantity => discount
+    # we need to look through each tier and find the first one where total_quantity >= its quantity.
+    # @discounts_by_quantity needs to be sorted from high to low quantity to match the highest qualifying tier.
+    # Keys are quantities so we get them out, sort them, and look up the discounts to put in a new hash in order.
+    @sorted_discounts_by_quantity = {}
+    keys = @discounts_by_quantity.keys.sort.reverse
+    keys.each{|key| @sorted_discounts_by_quantity[key] = @discounts_by_quantity[key] }
+
+    quantity, discount = @sorted_discounts_by_quantity.detect do |quantity, discount|
+      puts "total_quantity #{total_quantity}"
+      puts "quantity #{quantity}"
+      puts "discount #{discount}"
+      total_quantity >= quantity
+    end
+
+    # if not qualified for a discount tier, return and continue checkout.
+    return unless discount
+    # if qualified for discount, apply to all items.
     items_in_discount_category.each do |line_item|
-      # return the first tier (key value pair of quantity => discount)
-      # where line_item.quantity >= current quantity (key). 
-      quantity, discount = @discounts_by_quantity.detect do |quantity, discount|
-        line_item.quantity >= quantity
-      end
-      # skip this line item if quantity does not qualify for a tier 
-      next unless discount
       discount.apply(line_item)
     end
   end
